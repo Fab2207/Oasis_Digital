@@ -1,0 +1,8 @@
+Requisitos del proyecto:
+----------------------
+
+1. Spring 
+2. VScode
+3. Manejo de Ramas
+4. Buen manejo de commits
+
