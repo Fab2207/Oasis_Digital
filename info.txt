@@ -16,3 +16,15 @@ Control de versiones: Git Bash (local) y GitHub (remoto)
 Backend: Spring Boot
 
 Frontend: Angular, HTML, CSS y JavaScript
+
+----------------------------------------------------
+
+Arquitectura inicial:
+
+El proyecto se desarrollará bajo una arquitectura de capas, con el frontend (Angular) actuando como la Vista. 
+El backend (Spring Boot) se encargará de las funciones de Controlador y Modelo.
+Específicamente, el sistema utilizará controladores para manejar las peticiones del cliente, que a su vez se
+comunicarán con la capa de Servicios para ejecutar la lógica de negocio principal del sistema. 
+Finalmente, la capa de Repositorios será responsable de todas las operaciones de acceso a datos, interactuando 
+directamente con la base de datos para almacenar y recuperar la información necesaria.
+
