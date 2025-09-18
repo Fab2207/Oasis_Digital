@@ -1,0 +1,18 @@
+Informacion del proyecto:
+--------------------------------------------
+
+Gestión Hotelera: Proyecto Web con Spring Boot y Angular
+
+El presente proyecto consiste en el desarrollo de una página web para la gestión hotelera, orientada a optimizar la administración de procesos clave como reservas, clientes y habitaciones. El objetivo es mejorar la experiencia de los usuarios finales y del personal, y optimizar la gestión interna del hotel.
+
+El propósito de este documento es registrar el progreso y la evolución del proyecto. Para ello, se está utilizando Git como sistema de control de versiones, lo que permite un flujo de trabajo organizado y colaborativo. Este enfoque garantiza un historial detallado de las modificaciones y una coordinación efectiva entre los desarrolladores.
+
+La arquitectura del sistema es MVC, lo que asegura su escalabilidad a futuro. Las tecnologías empleadas en el desarrollo son:
+
+Editor de código: Visual Studio Code
+
+Control de versiones: Git Bash (local) y GitHub (remoto)
+
+Backend: Spring Boot
+
+Frontend: Angular, HTML, CSS y JavaScript
