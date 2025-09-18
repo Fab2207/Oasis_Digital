@@ -15,8 +15,8 @@ public class HistorialController {
 
     @GetMapping("/historial")
     public String historial(@RequestParam(required = false) String dni, Model model) {
-        if (dni != null && !dni.isEmpty()) {
-            model.addAttribute("cliente", clienteService.buscarClientePorDni(dni).orElse(null));
+        if (dni != null) {
+            model.addAttribute("cliente", clienteService.buscarPorDni(dni).orElse(null));
         }
         return "historial";
     }

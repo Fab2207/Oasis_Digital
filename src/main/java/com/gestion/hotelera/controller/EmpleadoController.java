@@ -12,9 +12,13 @@ public class EmpleadoController {
     @Autowired
     private EmpleadoService empleadoService;
 
+    public EmpleadoController(EmpleadoService empleadoService) {
+        this.empleadoService = empleadoService;
+    }
+
     @GetMapping("/empleados")
-    public String listarEmpleados(Model model) {
-        model.addAttribute("empleados", empleadoService.listarTodosLosEmpleados());
+    public String listar(Model model) {
+        model.addAttribute("empleados", empleadoService.listarEmpleados());
         return "empleados";
     }
 }

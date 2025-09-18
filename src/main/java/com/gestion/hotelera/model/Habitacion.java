@@ -1,22 +1,19 @@
 package com.gestion.hotelera.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 public class Habitacion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String tipo;
-    private int numero;
-    private double precio;
-    private String estado; // Disponible, Ocupada, Mantenimiento
-    private String imagenUrl;
 
-    // Getters y Setters
+    private String numero;
+    private String estado;
+    private BigDecimal precio;
+
     public Long getId() {
         return id;
     }
@@ -25,28 +22,12 @@ public class Habitacion {
         this.id = id;
     }
 
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public int getNumero() {
+    public String getNumero() {
         return numero;
     }
 
-    public void setNumero(int numero) {
+    public void setNumero(String numero) {
         this.numero = numero;
-    }
-
-    public double getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(double precio) {
-        this.precio = precio;
     }
 
     public String getEstado() {
@@ -57,11 +38,11 @@ public class Habitacion {
         this.estado = estado;
     }
 
-    public String getImagenUrl() {
-        return imagenUrl;
+    public BigDecimal getPrecio() {
+        return precio;
     }
 
-    public void setImagenUrl(String imagenUrl) {
-        this.imagenUrl = imagenUrl;
+    public void setPrecio(BigDecimal precio) {
+        this.precio = precio;
     }
 }

@@ -2,27 +2,28 @@ package com.gestion.hotelera.service;
 
 import com.gestion.hotelera.model.Habitacion;
 import com.gestion.hotelera.repository.HabitacionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HabitacionService {
 
-    @Autowired
-    private HabitacionRepository habitacionRepository;
+    private final HabitacionRepository habitacionRepository;
 
-    public List<Habitacion> listarTodasLasHabitaciones() {
+    public HabitacionService(HabitacionRepository habitacionRepository) {
+        this.habitacionRepository = habitacionRepository;
+    }
+
+    public Habitacion registrarHabitacion(Habitacion habitacion) {
+        return habitacionRepository.save(habitacion);
+    }
+
+    public List<Habitacion> listarHabitaciones() {
         return habitacionRepository.findAll();
     }
 
-    public Optional<Habitacion> buscarHabitacionPorId(Long id) {
-        return habitacionRepository.findById(id);
-    }
-    
-    public Habitacion guardarHabitacion(Habitacion habitacion) {
-        return habitacionRepository.save(habitacion);
+    public List<Habitacion> listarPorEstado(String estado) {
+        return habitacionRepository.findByEstado(estado);
     }
 
     public void eliminarHabitacion(Long id) {

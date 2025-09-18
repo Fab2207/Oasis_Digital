@@ -13,8 +13,8 @@ public class HabitacionController {
     private HabitacionService habitacionService;
 
     @GetMapping("/habitaciones")
-    public String listarHabitaciones(Model model) {
-        model.addAttribute("habitaciones", habitacionService.listarTodasLasHabitaciones());
+    public String listar(Model model) {
+        model.addAttribute("habitaciones", habitacionService.listarHabitaciones());
         return "habitaciones";
     }
 }

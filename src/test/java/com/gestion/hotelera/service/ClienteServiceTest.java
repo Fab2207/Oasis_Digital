@@ -2,48 +2,54 @@ package com.gestion.hotelera.service;
 
 import com.gestion.hotelera.model.Cliente;
 import com.gestion.hotelera.repository.ClienteRepository;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.Collections;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
 
-@ExtendWith(MockitoExtension.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 public class ClienteServiceTest {
 
-    @Mock
     private ClienteRepository clienteRepository;
-
-    @InjectMocks
     private ClienteService clienteService;
 
-    private Cliente cliente;
-
     @BeforeEach
-    public void setUp() {
-        cliente = new Cliente();
-        cliente.setId(1L);
-        cliente.setDni("12345678");
-        cliente.setNombre("Juan");
+    void setUp() {
+        clienteRepository = Mockito.mock(ClienteRepository.class);
+        clienteService = new ClienteService(clienteRepository);
     }
 
     @Test
-    public void testListarTodosLosClientes() {
-        when(clienteRepository.findAll()).thenReturn(Collections.singletonList(cliente));
-        assertEquals(1, clienteService.listarTodosLosClientes().size());
-        verify(clienteRepository, times(1)).findAll();
-    }
-    
-    @Test
-    public void testGuardarCliente() {
+    void testRegistrarCliente() {
+        Cliente cliente = new Cliente();
+        cliente.setDni("87654321");
+        cliente.setNombre("Maria");
+        cliente.setApellido("Lopez");
+        cliente.setNacionalidad("Peruana");
+
         when(clienteRepository.save(any(Cliente.class))).thenReturn(cliente);
-        Cliente savedCliente = clienteService.guardarCliente(new Cliente());
-        assertNotNull(savedCliente);
-        assertEquals("Juan", savedCliente.getNombre());
-        verify(clienteRepository, times(1)).save(any(Cliente.class));
+
+        Cliente guardado = clienteService.registrarCliente(cliente);
+
+        assertThat(guardado).isNotNull();
+        assertThat(guardado.getNombre()).isEqualTo("Maria");
+    }
+
+    @Test
+    void testBuscarPorDni() {
+        Cliente cliente = new Cliente();
+        cliente.setDni("11223344");
+        cliente.setNombre("Carlos");
+
+        when(clienteRepository.findByDni("11223344")).thenReturn(Optional.of(cliente));
+
+        Optional<Cliente> encontrado = clienteService.buscarPorDni("11223344");
+
+        assertThat(encontrado).isPresent();
+        assertThat(encontrado.get().getNombre()).isEqualTo("Carlos");
     }
 }

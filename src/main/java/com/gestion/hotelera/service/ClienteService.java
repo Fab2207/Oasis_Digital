@@ -2,7 +2,6 @@ package com.gestion.hotelera.service;
 
 import com.gestion.hotelera.model.Cliente;
 import com.gestion.hotelera.repository.ClienteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -10,22 +9,21 @@ import java.util.Optional;
 @Service
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
-    public List<Cliente> listarTodosLosClientes() {
-        return clienteRepository.findAll();
+    public ClienteService(ClienteRepository clienteRepository) {
+        this.clienteRepository = clienteRepository;
     }
 
-    public Optional<Cliente> buscarClientePorDni(String dni) {
-        return Optional.ofNullable(clienteRepository.findByDni(dni));
-    }
-
-    public Cliente guardarCliente(Cliente cliente) {
+    public Cliente registrarCliente(Cliente cliente) {
         return clienteRepository.save(cliente);
     }
-    
-    public void eliminarCliente(Long id) {
-        clienteRepository.deleteById(id);
+
+    public Optional<Cliente> buscarPorDni(String dni) {
+        return clienteRepository.findByDni(dni);
+    }
+
+    public List<Cliente> listarClientes() {
+        return clienteRepository.findAll();
     }
 }

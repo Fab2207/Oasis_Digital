@@ -1,40 +1,44 @@
 package com.gestion.hotelera.restController;
 
+import org.springframework.web.bind.annotation.*;
 import com.gestion.hotelera.model.Habitacion;
 import com.gestion.hotelera.service.HabitacionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/habitaciones")
 public class HabitacionRestController {
 
-    @Autowired
-    private HabitacionService habitacionService;
+    private final HabitacionService habitacionService;
 
-    @GetMapping
-    public List<Habitacion> listarTodasLasHabitaciones() {
-        return habitacionService.listarTodasLasHabitaciones();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Habitacion> buscarHabitacionPorId(@PathVariable Long id) {
-        return habitacionService.buscarHabitacionPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public HabitacionRestController(HabitacionService habitacionService) {
+        this.habitacionService = habitacionService;
     }
 
     @PostMapping
-    public Habitacion guardarHabitacion(@RequestBody Habitacion habitacion) {
-        return habitacionService.guardarHabitacion(habitacion);
+    public Habitacion registrarHabitacion(@RequestBody Habitacion habitacion) {
+        return habitacionService.registrarHabitacion(habitacion);
     }
 
-    // Endpoint para eliminar
+    @GetMapping
+    public List<Habitacion> listarHabitaciones() {
+        return habitacionService.listarHabitaciones();
+    }
+
+    @GetMapping("/estado/{estado}")
+    public List<Habitacion> listarPorEstado(@PathVariable String estado) {
+        return habitacionService.listarPorEstado(estado);
+    }
+
+    @PutMapping("/{id}")
+    public Habitacion actualizarHabitacion(@PathVariable Long id, @RequestBody Habitacion habitacion) {
+        habitacion.setId(id);
+        return habitacionService.registrarHabitacion(habitacion);
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarHabitacion(@PathVariable Long id) {
+    public void eliminarHabitacion(@PathVariable Long id) {
         habitacionService.eliminarHabitacion(id);
-        return ResponseEntity.noContent().build();
     }
 }
