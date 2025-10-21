@@ -1,48 +1,43 @@
 package com.gestion.hotelera.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "habitaciones")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Habitacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true, length = 10)
     private String numero;
+
+    @Column(nullable = false, length = 50)
+    private String tipo;
+
+    @Column(nullable = false)
+    private Double precioPorNoche;
+
+    @Column(nullable = false, length = 20)
     private String estado;
-    private BigDecimal precio;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNumero() {
-        return numero;
-    }
-
-    public void setNumero(String numero) {
+    public Habitacion(String numero, String tipo, Double precioPorNoche, String estado) {
         this.numero = numero;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
+        this.tipo = tipo;
+        this.precioPorNoche = precioPorNoche;
         this.estado = estado;
     }
 
-    public BigDecimal getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(BigDecimal precio) {
-        this.precio = precio;
+    public Habitacion(Long id) {
+        this.id = id;
     }
 }
