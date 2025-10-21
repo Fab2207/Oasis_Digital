@@ -1,13 +1,16 @@
 package com.gestion.hotelera.restController;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.gestion.hotelera.model.Habitacion;
 import com.gestion.hotelera.service.HabitacionService;
-
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/habitaciones")
+@CrossOrigin(origins = "*")
 public class HabitacionRestController {
 
     private final HabitacionService habitacionService;
@@ -17,28 +20,53 @@ public class HabitacionRestController {
     }
 
     @PostMapping
-    public Habitacion registrarHabitacion(@RequestBody Habitacion habitacion) {
-        return habitacionService.registrarHabitacion(habitacion);
+    public ResponseEntity<Habitacion> registrarHabitacion(@Valid @RequestBody Habitacion habitacion) {
+        Habitacion nueva = habitacionService.crearHabitacion(habitacion);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nueva);
     }
 
     @GetMapping
-    public List<Habitacion> listarHabitaciones() {
-        return habitacionService.listarHabitaciones();
+    public ResponseEntity<List<Habitacion>> listarHabitaciones() {
+        return ResponseEntity.ok(habitacionService.obtenerTodasLasHabitaciones());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Habitacion> buscarPorId(@PathVariable Long id) {
+        return habitacionService.buscarHabitacionPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/estado/{estado}")
-    public List<Habitacion> listarPorEstado(@PathVariable String estado) {
-        return habitacionService.listarPorEstado(estado);
+    public ResponseEntity<List<Habitacion>> listarPorEstado(@PathVariable String estado) {
+        return switch (estado.toUpperCase()) {
+            case "DISPONIBLE" -> ResponseEntity.ok(habitacionService.obtenerHabitacionesDisponibles());
+            case "OCUPADA" -> ResponseEntity.ok(habitacionService.obtenerHabitacionesOcupadas());
+            case "MANTENIMIENTO" -> ResponseEntity.ok(habitacionService.obtenerHabitacionesEnMantenimiento());
+            default -> ResponseEntity.ok(List.of());
+        };
     }
 
     @PutMapping("/{id}")
-    public Habitacion actualizarHabitacion(@PathVariable Long id, @RequestBody Habitacion habitacion) {
+    public ResponseEntity<Habitacion> actualizarHabitacion(@PathVariable Long id, @Valid @RequestBody Habitacion habitacion) {
         habitacion.setId(id);
-        return habitacionService.registrarHabitacion(habitacion);
+        Habitacion actualizada = habitacionService.actualizarHabitacion(habitacion);
+        return ResponseEntity.ok(actualizada);
+    }
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id, @RequestParam String estado) {
+        habitacionService.actualizarEstadoHabitacion(id, estado);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public void eliminarHabitacion(@PathVariable Long id) {
-        habitacionService.eliminarHabitacion(id);
+    public ResponseEntity<?> eliminarHabitacion(@PathVariable Long id) {
+        try {
+            habitacionService.eliminarHabitacion(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        }
     }
 }
