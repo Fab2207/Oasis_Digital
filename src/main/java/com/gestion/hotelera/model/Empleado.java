@@ -1,59 +1,71 @@
 package com.gestion.hotelera.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "empleados")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Empleado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombre;
-    private String apellido;
-    private String cargo;
+    @NotBlank(message = "Los nombres son obligatorios")
+    @Size(max = 100, message = "Los nombres no pueden exceder los 100 caracteres")
+    @Column(nullable = false, length = 100)
+    private String nombres;
+
+    @NotBlank(message = "Los apellidos son obligatorios")
+    @Size(max = 100, message = "Los apellidos no pueden exceder los 100 caracteres")
+    @Column(nullable = false, length = 100)
+    private String apellidos;
+
+    @NotBlank(message = "El DNI es obligatorio")
+    @Size(min = 8, max = 8, message = "El DNI debe tener 8 dígitos")
+    @Pattern(regexp = "\\d+", message = "El DNI solo debe contener números")
+    @Column(nullable = false, unique = true, length = 20)
     private String dni;
 
-    public Long getId() {
-        return id;
-    }
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "Debe ser un formato de email válido")
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Pattern(regexp = "^\\d{9}$", message = "El teléfono debe tener 9 dígitos")
+    @Column(nullable = true, length = 20)
+    private String telefono;
 
-    public String getNombre() {
-        return nombre;
-    }
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    @NotNull(message = "Los datos de usuario son obligatorios")
+    @Valid
+    private Usuario usuario;
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getApellido() {
-        return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
-
-    public String getCargo() {
-        return cargo;
-    }
-
-    public void setCargo(String cargo) {
-        this.cargo = cargo;
-    }
-
-    public String getDni() {
-        return dni;
-    }
-
-    public void setDni(String dni) {
+    public Empleado(String nombres, String apellidos, String dni, String email, String telefono) {
+        this.nombres = nombres;
+        this.apellidos = apellidos;
         this.dni = dni;
+        this.email = email;
+        this.telefono = telefono;
+        this.usuario = new Usuario();
+    }
+
+    public Empleado(String nombres, String apellidos, String dni, String email, String telefono, Usuario usuario) {
+        this.nombres = nombres;
+        this.apellidos = apellidos;
+        this.dni = dni;
+        this.email = email;
+        this.telefono = telefono;
+        this.usuario = usuario;
     }
 }

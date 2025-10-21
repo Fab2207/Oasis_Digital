@@ -1,71 +1,67 @@
 package com.gestion.hotelera.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "reservas")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Reserva {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private LocalDate fechaEntrada;
-    private LocalDate fechaSalida;
-    private double costoTotal;
 
-    @ManyToOne
-    @JoinColumn(name = "habitacion_id")
-    private Habitacion habitacion;
-
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habitacion_id", nullable = false)
+    private Habitacion habitacion;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(nullable = false)
+    private LocalDate fechaInicio;
 
-    public LocalDate getFechaEntrada() {
-        return fechaEntrada;
-    }
+    @Column(nullable = false)
+    private LocalDate fechaFin;
 
-    public void setFechaEntrada(LocalDate fechaEntrada) {
-        this.fechaEntrada = fechaEntrada;
-    }
+    @Column(nullable = false)
+    private LocalTime horaEntrada;
 
-    public LocalDate getFechaSalida() {
-        return fechaSalida;
-    }
+    @Column(nullable = false)
+    private LocalTime horaSalida;
 
-    public void setFechaSalida(LocalDate fechaSalida) {
-        this.fechaSalida = fechaSalida;
-    }
+    @Column(nullable = false)
+    private Integer diasEstadia;
 
-    public double getCostoTotal() {
-        return costoTotal;
-    }
+    @Column(nullable = false)
+    private Double totalPagar;
 
-    public void setCostoTotal(double costoTotal) {
-        this.costoTotal = costoTotal;
-    }
+    @Column(nullable = false, length = 20)
+    private String estadoReserva;
 
-    public Habitacion getHabitacion() {
-        return habitacion;
-    }
+    @Column(name = "fecha_salida_real")
+    private LocalDate fechaSalidaReal;
 
-    public void setHabitacion(Habitacion habitacion) {
-        this.habitacion = habitacion;
-    }
-
-    public Cliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(Cliente cliente) {
+    public Reserva(Cliente cliente, Habitacion habitacion, LocalDate fechaInicio, LocalDate fechaFin, LocalTime horaEntrada, LocalTime horaSalida, Integer diasEstadia, Double totalPagar, String estadoReserva) {
         this.cliente = cliente;
+        this.habitacion = habitacion;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.horaEntrada = horaEntrada;
+        this.horaSalida = horaSalida;
+        this.diasEstadia = diasEstadia;
+        this.totalPagar = totalPagar;
+        this.estadoReserva = estadoReserva;
     }
 }

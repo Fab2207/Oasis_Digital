@@ -1,58 +1,59 @@
 package com.gestion.hotelera.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "clientes")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Cliente {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(min = 2, max = 100)
+    @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")
+    @Column(nullable = false, length = 100)
+    private String nombres;
+
+    @NotBlank
+    @Size(min = 2, max = 100)
+    @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")
+    @Column(nullable = false, length = 100)
+    private String apellidos;
+
+    @NotBlank
+    @Size(min = 8, max = 8)
+    @Pattern(regexp = "^[0-9]{8}$")
+    @Column(nullable = false, unique = true, length = 8)
     private String dni;
-    private String nombre;
-    private String apellido;
+
+    @Size(max = 50)
+    @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s-]*$")
+    @Column(length = 50)
     private String nacionalidad;
 
-    public Long getId() {
-        return id;
-    }
+    @Email
+    @Size(max = 100)
+    @Column(length = 100)
+    private String email;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(length = 20)
+    private String telefono;
 
-    public String getDni() {
-        return dni;
-    }
+    @Transient
+    private boolean hasActiveReservations;
 
-    public void setDni(String dni) {
-        this.dni = dni;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getApellido() {
-        return apellido;
-    }
-
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
-
-    public String getNacionalidad() {
-        return nacionalidad;
-    }
-
-    public void setNacionalidad(String nacionalidad) {
-        this.nacionalidad = nacionalidad;
-    }
+    @OneToOne
+    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    private Usuario usuario;
 }
