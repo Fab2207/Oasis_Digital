@@ -1,46 +1,90 @@
 package com.gestion.hotelera.controller;
 
-import jakarta.servlet.http.HttpSession;
+import com.gestion.hotelera.model.Cliente;
+import com.gestion.hotelera.model.Reserva;
+import com.gestion.hotelera.service.ClienteService;
+import com.gestion.hotelera.service.ReservaService;
+import com.gestion.hotelera.service.HabitacionService;
+import com.gestion.hotelera.service.EmpleadoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import com.gestion.hotelera.service.ClienteService;
-import com.gestion.hotelera.service.HabitacionService;
+import java.util.List;
 
 @Controller
 public class DashboardController {
 
-    private final HabitacionService habitacionService;
-    private final ClienteService clienteService;
+    @Autowired
+    private ClienteService clienteService;
 
-    public DashboardController(HabitacionService habitacionService, ClienteService clienteService) {
-        this.habitacionService = habitacionService;
-        this.clienteService = clienteService;
-    }
+    @Autowired
+    private ReservaService reservaService;
+
+    @Autowired
+    private HabitacionService habitacionService;
+
+    @Autowired
+    private EmpleadoService empleadoService;
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession session) {
-        String role = (String) session.getAttribute("role");
-        String username = (String) session.getAttribute("username");
+    public String mostrarDashboard(Model model, Authentication auth) {
+        var roles = auth.getAuthorities();
+        model.addAttribute("roles", roles);
 
-        if (role == null) {
-            return "redirect:/login";
+        if (roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_CLIENTE"))) {
+            Cliente cliente = clienteService.obtenerPorUsername(auth.getName());
+            if (cliente != null) {
+                List<Reserva> reservas = reservaService.obtenerReservasPorCliente(cliente);
+                long reservasActivas = reservas.stream()
+                        .filter(r -> r.getEstadoReserva().equalsIgnoreCase("ACTIVA")
+                                || r.getEstadoReserva().equalsIgnoreCase("PENDIENTE"))
+                        .count();
+                long reservasFinalizadas = reservas.stream()
+                        .filter(r -> r.getEstadoReserva().equalsIgnoreCase("FINALIZADA"))
+                        .count();
+                model.addAttribute("cliente", cliente);
+                model.addAttribute("reservas", reservas);
+                model.addAttribute("reservasActivas", reservasActivas);
+                model.addAttribute("reservasFinalizadas", reservasFinalizadas);
+                model.addAttribute("isLoggedIn", true);
+                model.addAttribute("username", cliente.getNombres());
+                return "dashboard";
+            }
         }
 
-        long totalHabitaciones = habitacionService.listarHabitaciones().size();
-        long totalClientes = clienteService.listarClientes().size();
-        long disponibles = habitacionService.listarPorEstado("Disponible").size();
-        long ocupadas = habitacionService.listarPorEstado("Ocupada").size();
-        long mantenimiento = habitacionService.listarPorEstado("Mantenimiento").size();
+        if (roles.stream().anyMatch(r ->
+                r.getAuthority().equals("ROLE_ADMIN") || r.getAuthority().equals("ROLE_RECEPCIONISTA"))) {
+            long totalHabitaciones = habitacionService.contarHabitaciones();
+            long totalClientes = clienteService.contarClientes();
+            long totalReservas = reservaService.contarReservas();
+            long habitacionesDisponibles = habitacionService.contarDisponibles();
+            long habitacionesOcupadas = habitacionService.contarOcupadas();
+            long habitacionesMantenimiento = habitacionService.contarEnMantenimiento();
+            long totalEmpleados = empleadoService.contarEmpleados();
+            double ingresosTotales = reservaService.calcularIngresosTotales();
+            long reservasPendientes = reservaService.contarReservasPorEstado("PENDIENTE");
+            long reservasActivas = reservaService.contarReservasPorEstado("ACTIVA");
+            long checkInsHoy = reservaService.contarCheckInsHoy();
+            long checkOutsHoy = reservaService.contarCheckOutsHoy();
 
-        model.addAttribute("username", username);
-        model.addAttribute("role", role);
-        model.addAttribute("totalHabitaciones", totalHabitaciones);
-        model.addAttribute("totalClientes", totalClientes);
-        model.addAttribute("disponible", disponibles);
-        model.addAttribute("ocupada", ocupadas);
-        model.addAttribute("mantenimiento", mantenimiento);
+            model.addAttribute("totalHabitaciones", totalHabitaciones);
+            model.addAttribute("totalClientes", totalClientes);
+            model.addAttribute("totalReservas", totalReservas);
+            model.addAttribute("habitacionesDisponibles", habitacionesDisponibles);
+            model.addAttribute("habitacionesOcupadas", habitacionesOcupadas);
+            model.addAttribute("habitacionesMantenimiento", habitacionesMantenimiento);
+            model.addAttribute("totalEmpleados", totalEmpleados);
+            model.addAttribute("ingresosTotales", ingresosTotales);
+            model.addAttribute("reservasPendientes", reservasPendientes);
+            model.addAttribute("reservasActivas", reservasActivas);
+            model.addAttribute("checkInsHoy", checkInsHoy);
+            model.addAttribute("checkOutsHoy", checkOutsHoy);
 
-        return "dashboard";
+            return "dashboard";
+        }
+
+        return "redirect:/login";
     }
 }
