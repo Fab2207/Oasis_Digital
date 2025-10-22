@@ -2,8 +2,8 @@ package com.gestion.hotelera.service;
 
 import com.gestion.hotelera.model.Empleado;
 import com.gestion.hotelera.model.Usuario;
-import com.gestion.hotelera.service.repository.EmpleadoRepository;
-import com.gestion.hotelera.service.repository.UsuarioRepository;
+import com.gestion.hotelera.repository.EmpleadoRepository;
+import com.gestion.hotelera.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
