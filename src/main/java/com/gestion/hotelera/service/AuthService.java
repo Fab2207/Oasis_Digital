@@ -5,7 +5,7 @@ import com.gestion.hotelera.dto.LoginRequest;
 import com.gestion.hotelera.dto.RegisterRequest;
 import com.gestion.hotelera.model.Cliente;
 import com.gestion.hotelera.model.Usuario;
-import com.gestion.hotelera.service.repository.UsuarioRepository;
+import com.gestion.hotelera.repository.UsuarioRepository;
 import com.gestion.hotelera.security.JwtService;
 
 import org.springframework.security.authentication.AuthenticationManager;
