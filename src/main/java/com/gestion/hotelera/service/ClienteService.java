@@ -1,8 +1,8 @@
 package com.gestion.hotelera.service;
 
 import com.gestion.hotelera.model.Cliente;
-import com.gestion.hotelera.service.repository.ClienteRepository;
-import com.gestion.hotelera.service.repository.ReservaRepository;
+import com.gestion.hotelera.repository.ClienteRepository;
+import com.gestion.hotelera.repository.ReservaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

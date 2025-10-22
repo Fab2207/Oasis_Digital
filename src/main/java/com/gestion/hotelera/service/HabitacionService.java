@@ -1,8 +1,8 @@
 package com.gestion.hotelera.service;
 
 import com.gestion.hotelera.model.Habitacion;
-import com.gestion.hotelera.service.repository.HabitacionRepository;
-import com.gestion.hotelera.service.repository.ReservaRepository;
+import com.gestion.hotelera.repository.HabitacionRepository;
+import com.gestion.hotelera.repository.ReservaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

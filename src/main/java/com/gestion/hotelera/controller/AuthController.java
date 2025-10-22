@@ -1,7 +1,7 @@
 package com.gestion.hotelera.controller;
 
 import com.gestion.hotelera.dto.AuthResponse;
-import com.gestion.hotelera.LoginRequest;
+import com.gestion.hotelera.dto.LoginRequest;
 import com.gestion.hotelera.dto.RegisterRequest;
 import com.gestion.hotelera.service.AuthService;
 import lombok.RequiredArgsConstructor;
