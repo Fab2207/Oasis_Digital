@@ -1,228 +1,534 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oasis Digital - Tu Mejor Experiencia Hotelera</title>
-    <link rel="stylesheet" th:href="@{/css/index-styles.css}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;700&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oasis Digital - Hotel de Lujo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+  <style>
+    .btn-nav-outline {
+      background-color: transparent !important;
+      color: var(--dorado) !important;
+      padding: 8px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      border: 2px solid var(--dorado);
+      transition: all 0.3s ease;
+    }
+
+    .btn-nav-outline:hover {
+      background-color: var(--dorado) !important;
+      color: var(--negro) !important;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: var(--negro);
+      min-width: 180px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+      z-index: 1;
+      border-radius: 6px;
+    }
+
+    .dropdown-content a {
+      color: var(--blanco);
+      padding: 10px 16px;
+      display: block;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .dropdown-content a:hover {
+      background-color: var(--dorado);
+      color: var(--negro);
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+  </style>
 </head>
 
 <body>
-    <header class="hero-section">
-        <div class="hero-overlay"></div>
-        <div class="navbar-home">
-            <div class="logo">Oasis Digital</div>
-            <nav>
-                <ul>
-                    <li><a href="#about">Nosotros</a></li>
-                    <li><a href="#services">Servicios</a></li>
-                    <li><a href="#gallery">Galería</a></li>
-                    <li><a href="#contact">Contacto</a></li>
-                </ul>
-            </nav>
-            <a th:href="@{/login}" class="login-button">Iniciar Sesión</a>
-        </div>
-        <div class="hero-content">
-            <h1 data-aos="fade-up" data-aos-duration="1000">Bienvenido a Oasis Digital</h1>
-            <p data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">Donde el lujo y la comodidad se
-                encuentran para una experiencia inolvidable.</p>
-            <a href="#services" class="cta-button" data-aos="fade-up" data-aos-duration="1000"
-                data-aos-delay="600">Explorar Servicios</a>
-        </div>
-    </header>
-    <section id="about" class="about-section">
-        <div class="content-wrapper">
-            <h2 data-aos="fade-up">Acerca de Nosotros</h2>
-            <p data-aos="fade-up" data-aos-delay="200">En Oasis Digital, nos dedicamos a ofrecer una estancia
-                excepcional. Desde nuestras cómodas habitaciones hasta nuestro servicio al cliente de primera clase,
-                cada detalle está diseñado para su máximo confort y disfrute. Combinamos la elegancia tradicional con la
-                tecnología moderna para crear un ambiente único.</p>
-        </div>
-    </section>
-    <section id="services" class="services-section">
-        <div class="content-wrapper">
-            <div class="services-content-layout">
-                <div class="services-text-column">
-                    <h2 data-aos="fade-up">Nuestros Servicios</h2>
-                    <div class="services-grid">
-                        <div class="service-item" data-aos="fade-up" data-aos-delay="100">
-                            <i class="icon fas fa-bed"></i>
-                            <h3>Habitaciones Disponibles</h3>
-                            <p>Relájese en nuestras habitaciones elegantemente diseñadas con todas las comodidades.</p>
-                        </div>
-                        <div class="service-item" data-aos="fade-up" data-aos-delay="200">
-                            <i class="icon fas fa-utensils"></i>
-                            <h3>Gastronomía Elegante</h3>
-                            <p>Disfrute de una aventura culinaria inolvidable en nuestros restaurantes.</p>
-                        </div>
-                        <div class="service-item" data-aos="fade-up" data-aos-delay="300">
-                            <i class="icon fas fa-spa"></i>
-                            <h3>Spa & Bienestar</h3>
-                            <p>Revitalice su cuerpo y mente en nuestro moderno centro de spa.</p>
-                        </div>
-                        <div class="service-item" data-aos="fade-up" data-aos-delay="400">
-                            <i class="icon fas fa-wifi"></i>
-                            <h3>Wi-Fi de Alta Velocidad</h3>
-                            <p>Manténgase conectado con nuestro internet de fibra óptica en todo el hotel.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="services-image-column" data-aos="fade-left" data-aos-delay="500">
-                    <img th:src="@{/images/img2.jpg}" alt="Aspectos del Hotel Oasis Digital">
-                </div>
+  <nav class="navbar-custom">
+    <div class="container-custom">
+      <a th:href="@{/}" class="navbar-brand-custom">
+        <i class="fas fa-hotel"></i> Oasis Digital
+      </a>
+      <button class="navbar-toggle" id="navbarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <ul class="navbar-menu" id="navbarMenu">
+        <li><a href="#inicio"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="#habitaciones"><i class="fas fa-bed"></i> Habitaciones</a></li>
+        <li><a href="#servicios"><i class="fas fa-concierge-bell"></i> Servicios</a></li>
+        <li><a href="#resenas"><i class="fas fa-star"></i> Reseñas</a></li>
+        <li><a href="#contacto"><i class="fas fa-envelope"></i> Contacto</a></li>
+
+        <li th:if="${!isLoggedIn}">
+          <a th:href="@{/login}" class="btn-nav-login">
+            <i class="fas fa-sign-in-alt"></i> Ingresar
+          </a>
+        </li>
+
+        <li th:if="${isLoggedIn}">
+          <span class="nav-link" style="color: var(--blanco);">
+            Bienvenido, <span style="color: var(--dorado);" th:text="${username}">Usuario</span>
+          </span>
+        </li>
+
+        <li th:if="${isLoggedIn}" class="dropdown">
+          <a href="#" class="btn-nav-outline">
+            <i class="fas fa-user-circle"></i> Mi Cuenta
+          </a>
+          <div class="dropdown-content">
+            <a th:href="@{/dashboard}"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a th:href="@{/cliente/reservas/crear}"><i class="fas fa-calendar-plus"></i> Generar Reserva</a>
+            <a th:href="@{/logout}" style="color:#ff4d4d;"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <section id="inicio" class="hero-section-custom">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1 class="hero-title-custom">Bienvenido a Oasis Digital</h1>
+      <p class="hero-subtitle-custom">Experiencia de lujo incomparable en el corazón de la ciudad</p>
+      <div class="hero-buttons">
+        <a class="btn-gold btn-lg" sec:authorize="isAuthenticated()" th:href="@{/cliente/reservas/crear}">
+          <i class="fas fa-calendar-check"></i> Reservar Ahora
+        </a>
+        <a class="btn-gold btn-lg" sec:authorize="isAnonymous()" th:href="@{/login}">
+          <i class="fas fa-calendar-check"></i> Reservar Ahora
+        </a>
+        <a href="#habitaciones" class="btn-outline-gold btn-lg">
+          <i class="fas fa-search"></i> Ver Habitaciones
+        </a>
+      </div>
+    </div>
+    <div class="weather-widget-custom" id="weatherWidget">
+      <div class="weather-loading">
+        <i class="fas fa-spinner fa-spin fa-2x icon-gold"></i>
+        <p>Cargando clima...</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="habitaciones" class="section-custom">
+    <div class="container-custom">
+      <h2 class="section-title">
+        <i class="fas fa-bed"></i> Nuestras Habitaciones
+      </h2>
+      <p class="section-subtitle">Descubre el lujo y confort en cada una de nuestras suites</p>
+
+      <div class="rooms-grid">
+        <div class="room-card">
+          <div class="room-image"
+            style="background-image: url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600');">
+            <div class="room-badge">Premium</div>
+          </div>
+          <div class="room-content">
+            <h3>Suite Presidencial</h3>
+            <p>Máximo lujo con jacuzzi, vista al mar y sala de estar privada</p>
+            <div class="room-features">
+              <span><i class="fas fa-users"></i> 2 personas</span>
+              <span><i class="fas fa-bed"></i> King size</span>
+              <span><i class="fas fa-swimming-pool"></i> Jacuzzi</span>
             </div>
+            <div class="room-footer">
+              <div class="room-price">S/. 450<span>/noche</span></div>
+              <a class="btn-gold btn-sm" sec:authorize="isAuthenticated()" th:href="@{/cliente/reservas/crear}">Reservar</a>
+              <a class="btn-gold btn-sm" sec:authorize="isAnonymous()" th:href="@{/login}">Reservar</a>
+            </div>
+          </div>
         </div>
-    </section>
-    <section id="gallery" class="gallery-section">
-        <div class="content-wrapper">
-            <h2 data-aos="fade-up">Nuestra Galería</h2>
-            <div class="gallery-grid">
-                <div class="gallery-item-wrapper" data-aos="fade-in" data-aos-duration="800">
-                    <img th:src="@{/images/img4.jpg}" alt="Habitación de Lujo">
-                    <div class="gallery-text-overlay">
-                        <h3>Habitación de Lujo</h3>
-                        <p>Comodidad y elegancia en cada detalle.</p>
-                    </div>
-                </div>
-                <div class="gallery-item-wrapper" data-aos="fade-in" data-aos-duration="800" data-aos-delay="100">
-                    <img th:src="@{/images/img5.jpg}" alt="Restaurante Gourmet">
-                    <div class="gallery-text-overlay">
-                        <h3>Restaurante Gourmet</h3>
-                        <p>Comida, platos elegantes y postres</p>
-                    </div>
-                </div>
-                <div class="gallery-item-wrapper" data-aos="fade-in" data-aos-duration="800" data-aos-delay="200">
-                    <img th:src="@{/images/img6.jpg}" alt="Piscina Panorámica">
-                    <div class="gallery-text-overlay">
-                        <h3>Piscina Panorámica</h3>
-                        <p>Vistas impresionantes y un ambiente relajante.</p>
-                    </div>
-                </div>
-                <div class="gallery-item-wrapper" data-aos="fade-in" data-aos-duration="800" data-aos-delay="300">
-                    <img th:src="@{/images/img7.jpg}" alt="Lobby Elegante">
-                    <div class="gallery-text-overlay">
-                        <h3>Lobby Elegante</h3>
-                        <p>Un espacio acogedor y sofisticado.</p>
-                    </div>
-                </div>
+
+        <div class="room-card">
+          <div class="room-image"
+            style="background-image: url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600');">
+            <div class="room-badge">Popular</div>
+          </div>
+          <div class="room-content">
+            <h3>Suite Junior</h3>
+            <p>Elegante suite con balcón privado y cocineta equipada</p>
+            <div class="room-features">
+              <span><i class="fas fa-users"></i> 3 personas</span>
+              <span><i class="fas fa-bed"></i> Queen size</span>
+              <span><i class="fas fa-utensils"></i> Cocina</span>
             </div>
+            <div class="room-footer">
+              <div class="room-price">S/. 350<span>/noche</span></div>
+              <a class="btn-gold btn-sm" sec:authorize="isAuthenticated()" th:href="@{/cliente/reservas/crear}">Reservar</a>
+              <a class="btn-gold btn-sm" sec:authorize="isAnonymous()" th:href="@{/login}">Reservar</a>
+            </div>
+          </div>
         </div>
-    </section>
-    <section id="contact" class="contact-section">
-        <div class="content-wrapper contact-layout">
-            <div class="contact-info-column" data-aos="fade-right" data-aos-delay="100">
-                <h2 class="contact-title">Contáctanos</h2>
-                <p class="contact-description">¿Tienes alguna pregunta, deseas hacer una reserva, o necesitas ayuda?
-                    Estamos aquí para asistirte.</p>
-                <div class="contact-detail">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <div>
-                        <h3>Nuestra Ubicación</h3>
-                        <p>Av. Principal 123, Miraflores, Lima, Perú</p>
-                    </div>
-                </div>
-                <div class="contact-detail">
-                    <i class="fas fa-phone-alt"></i>
-                    <div>
-                        <h3>Llámanos</h3>
-                        <p>+51 987 654 321</p>
-                    </div>
-                </div>
-                <div class="contact-detail">
-                    <i class="fas fa-envelope"></i>
-                    <div>
-                        <h3>Envíanos un Email</h3>
-                        <p>info@oasisdigital.com</p>
-                    </div>
-                </div>
-                <div class="contact-detail">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                        <h3>Horario de Atención</h3>
-                        <p>Lunes - Viernes: 9am - 6pm</p>
-                        <p>Sábados: 10am - 2pm</p>
-                    </div>
-                </div>
+        <div class="room-card">
+          <div class="room-image"
+            style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600');">
+          </div>
+          <div class="room-content">
+            <h3>Habitación Doble</h3>
+            <p>Confort y elegancia con todas las comodidades modernas</p>
+            <div class="room-features">
+              <span><i class="fas fa-users"></i> 2 personas</span>
+              <span><i class="fas fa-bed"></i> Queen size</span>
+              <span><i class="fas fa-tv"></i> Smart TV</span>
             </div>
-            <div class="contact-form-column" data-aos="fade-left" data-aos-delay="200">
-                <h2 class="form-title">Envíanos un Mensaje</h2>
-                <form action="#" method="POST" class="contact-form">
-                    <div class="form-group">
-                        <label for="name">Nombre Completo:</label>
-                        <input type="text" id="name" name="name" required placeholder="Tu nombre">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Correo Electrónico:</label>
-                        <input type="email" id="email" name="email" required placeholder="tuemail@ejemplo.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="subject">Asunto:</label>
-                        <input type="text" id="subject" name="subject" required placeholder="Asunto del mensaje">
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Mensaje:</label>
-                        <textarea id="message" name="message" rows="6" required
-                            placeholder="Escribe tu mensaje aquí..."></textarea>
-                    </div>
-                    <button type="submit" class="cta-button">Enviar Mensaje</button>
-                </form>
+            <div class="room-footer">
+              <div class="room-price">S/. 280<span>/noche</span></div>
+              <a class="btn-gold btn-sm" sec:authorize="isAuthenticated()" th:href="@{/cliente/reservas/crear}">Reservar</a>
+              <a class="btn-gold btn-sm" sec:authorize="isAnonymous()" th:href="@{/login}">Reservar</a>
             </div>
+          </div>
         </div>
-    </section>
-    <footer>
-        <div class="footer-content content-wrapper">
-            <div class="footer-section about-us" data-aos="fade-up">
-                <h3>Oasis Digital</h3>
-                <p>Tu destino para una experiencia de lujo inolvidable, combinando comodidad y tecnología de vanguardia.
-                </p>
-                <div class="social-links">
-                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                </div>
+
+        <div class="room-card">
+          <div class="room-image"
+            style="background-image: url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600');">
+          </div>
+          <div class="room-content">
+            <h3>Habitación Simple</h3>
+            <p>Perfecta para viajeros individuales que buscan confort</p>
+            <div class="room-features">
+              <span><i class="fas fa-user"></i> 1 persona</span>
+              <span><i class="fas fa-bed"></i> Full size</span>
+              <span><i class="fas fa-wifi"></i> WiFi</span>
             </div>
-            <div class="footer-section quick-links" data-aos="fade-up" data-aos-delay="100">
-                <h3>Enlaces Rápidos</h3>
-                <ul>
-                    <li><a href="#about">Acerca de Nosotros</a></li>
-                    <li><a href="#services">Servicios</a></li>
-                    <li><a href="#gallery">Galería</a></li>
-                    <li><a href="#contact">Contacto</a></li>
-                    <li><a th:href="@{/login}">Iniciar Sesión</a></li>
-                </ul>
+            <div class="room-footer">
+              <div class="room-price">S/. 180<span>/noche</span></div>
+              <a class="btn-gold btn-sm" sec:authorize="isAuthenticated()" th:href="@{/cliente/reservas/crear}">Reservar</a>
+              <a class="btn-gold btn-sm" sec:authorize="isAnonymous()" th:href="@{/login}">Reservar</a>
             </div>
-            <div class="footer-section contact-info" data-aos="fade-up" data-aos-delay="200">
-                <h3>Contáctanos</h3>
-                <p><i class="fas fa-map-marker-alt"></i> Av. Principal 123, Miraflores, Lima, Perú</p>
-                <p><i class="fas fa-phone-alt"></i> +51 987 654 321</p>
-                <p><i class="fas fa-envelope"></i> info@oasisdigital.com</p>
-                <p><i class="fas fa-clock"></i> Lunes - Viernes: 9am - 6pm</p>
-            </div>
+          </div>
         </div>
-        <div class="footer-bottom" data-aos="fade-up" data-aos-delay="300">
-            <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> Oasis Digital. Todos los derechos
-                reservados.</p>
+      </div>
+
+      <div class="text-center" style="margin-top: 30px;">
+        <a th:href="@{/habitaciones/publico}" class="btn-outline-gold btn-lg">
+          <i class="fas fa-th"></i> Ver Todas las Habitaciones
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="servicios" class="section-custom section-dark">
+    <div class="container-custom">
+      <h2 class="section-title">
+        <i class="fas fa-concierge-bell"></i> Servicios Premium
+      </h2>
+      <p class="section-subtitle">Disfruta de experiencias exclusivas durante tu estancia</p>
+      <div class="services-grid">
+        <div class="service-card">
+          <i class="fas fa-spa fa-3x"></i>
+          <h3>Spa & Wellness</h3>
+          <p>Relájate en nuestro exclusivo spa de clase mundial con tratamientos personalizados</p>
+          <span class="service-price">Desde S/. 120</span>
         </div>
-    </footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            AOS.init({
-                duration: 1000,
-                once: true,
-                offset: 120
-            });
-        });
-    </script>
-    <script th:src="@{/js/index-scripts.js}"></script>
+
+        <div class="service-card">
+          <i class="fas fa-utensils fa-3x"></i>
+          <h3>Restaurant Gourmet</h3>
+          <p>Cocina internacional de primer nivel preparada por chefs reconocidos</p>
+          <span class="service-price">Desde S/. 80</span>
+        </div>
+
+        <div class="service-card">
+          <i class="fas fa-dumbbell fa-3x"></i>
+          <h3>Gimnasio 24/7</h3>
+          <p>Equipamiento de última generación disponible las 24 horas del día</p>
+          <span class="service-price">Incluido</span>
+        </div>
+
+        <div class="service-card">
+          <i class="fas fa-swimming-pool fa-3x"></i>
+          <h3>Piscina Infinity</h3>
+          <p>Vista panorámica espectacular desde nuestra piscina en la azotea</p>
+          <span class="service-price">Incluido</span>
+        </div>
+
+        <div class="service-card">
+          <i class="fas fa-cocktail fa-3x"></i>
+          <h3>Bar Premium</h3>
+          <p>Cócteles exclusivos y bebidas premium en un ambiente sofisticado</p>
+          <span class="service-price">Desde S/. 35</span>
+        </div>
+
+        <div class="service-card">
+          <i class="fas fa-car fa-3x"></i>
+          <h3>Transporte VIP</h3>
+          <p>Servicio de traslado al aeropuerto y tours por la ciudad</p>
+          <span class="service-price">Desde S/. 50</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-custom">
+    <div class="container-custom">
+      <h2 class="section-title">
+        <i class="fas fa-images"></i> Galería
+      </h2>
+      <div class="gallery-grid" id="galleryContainer">
+        <div class="gallery-item-custom"><img src="/images/img.jpg" alt="Galería 1"></div>
+        <div class="gallery-item-custom"><img src="/images/img2.jpg" alt="Galería 2"></div>
+        <div class="gallery-item-custom"><img src="/images/img3.jpg" alt="Galería 3"></div>
+        <div class="gallery-item-custom"><img src="/images/img4.jpg" alt="Galería 4"></div>
+        <div class="gallery-item-custom"><img src="/images/img5.jpg" alt="Galería 5"></div>
+        <div class="gallery-item-custom"><img src="/images/img6.jpg" alt="Galería 6"></div>
+        <div class="gallery-item-custom"><img src="/images/img7.jpg" alt="Galería 7"></div>
+        <div class="gallery-item-custom"><img src="/images/img8.jpg" alt="Galería 8"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="resenas" class="section-custom section-dark">
+    <div class="container-custom">
+      <h2 class="section-title">
+        <i class="fas fa-star"></i> Lo Que Dicen Nuestros Huéspedes
+      </h2>
+      <p class="section-subtitle">Experiencias reales de clientes satisfechos</p>
+
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+          <p class="review-text">"Experiencia inolvidable. El servicio es excepcional y las instalaciones de primer
+            nivel. Definitivamente volveré."</p>
+          <div class="review-author">
+            <img src="https://i.pravatar.cc/100?img=1" alt="Cliente">
+            <div>
+              <h4>María González</h4>
+              <span>Suite Presidencial</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+          <p class="review-text">"Perfecto para una escapada romántica. La vista desde la piscina es espectacular y el
+            spa increíble."</p>
+          <div class="review-author">
+            <img src="https://i.pravatar.cc/100?img=5" alt="Cliente">
+            <div>
+              <h4>Carlos Rodríguez</h4>
+              <span>Suite Junior</span>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+          <p class="review-text">"Excelente relación calidad-precio. El personal es muy amable y atento. Altamente
+            recomendado."</p>
+          <div class="review-author">
+            <img src="https://i.pravatar.cc/100?img=8" alt="Cliente">
+            <div>
+              <h4>Ana Martínez</h4>
+              <span>Habitación Doble</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto" class="section-custom">
+    <div class="container-custom">
+      <h2 class="section-title">
+        <i class="fas fa-envelope"></i> Contáctanos
+      </h2>
+
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h3>Información de Contacto</h3>
+
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div>
+              <h4>Dirección</h4>
+              <p>Av. Principal 123, San Isidro<br>Lima, Perú</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <i class="fas fa-phone"></i>
+            <div>
+              <h4>Teléfono</h4>
+              <p>+51 123 456 789<br>+51 987 654 321</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <h4>Email</h4>
+              <p>info@oasisdigital.com<br>reservas@oasisdigital.com</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <i class="fas fa-clock"></i>
+            <div>
+              <h4>Horarios de Atención</h4>
+              <p>Recepción 24/7<br>Restaurant: 6:00 AM - 11:00 PM<br>Spa: 9:00 AM - 9:00 PM</p>
+            </div>
+          </div>
+
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="contact-form">
+          <h3>Envíanos un Mensaje</h3>
+          <form id="contactForm">
+            <div class="form-group-custom">
+              <input type="text" placeholder="Tu nombre" required>
+            </div>
+            <div class="form-group-custom">
+              <input type="email" placeholder="Tu email" required>
+            </div>
+            <div class="form-group-custom">
+              <input type="tel" placeholder="Tu teléfono" required>
+            </div>
+            <div class="form-group-custom">
+              <textarea rows="5" placeholder="Tu mensaje" required></textarea>
+            </div>
+            <button type="submit" class="btn-gold" style="width: 100%;">
+              <i class="fas fa-paper-plane"></i> Enviar Mensaje
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer-custom">
+    <div class="container-custom">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4><i class="fas fa-hotel"></i> Oasis Digital</h4>
+          <p>Tu destino de lujo y confort en el corazón de Lima</p>
+          <div class="footer-social">
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Enlaces Rápidos</h4>
+          <ul>
+            <li><a href="#habitaciones">Habitaciones</a></li>
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="#resenas">Reseñas</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Servicios</h4>
+          <ul>
+            <li><a href="#">Spa & Wellness</a></li>
+            <li><a href="#">Restaurant</a></li>
+            <li><a href="#">Gimnasio</a></li>
+            <li><a href="#">Eventos</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Newsletter</h4>
+          <p>Suscríbete para ofertas exclusivas</p>
+          <form class="newsletter-form">
+            <input type="email" placeholder="Tu email">
+            <button type="submit"><i class="fas fa-arrow-right"></i></button>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2025 Oasis Digital. Todos los derechos reservados.</p>
+        <div>
+          <a href="#">Términos y Condiciones</a>
+          <a href="#">Política de Privacidad</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script th:inline="javascript">
+    const isLoggedIn = /*[[${isLoggedIn}]]*/ false;
+
+    document.getElementById('navbarToggle').addEventListener('click', function () {
+      document.getElementById('navbarMenu').classList.toggle('active');
+    });
+
+    document.querySelectorAll('.navbar-menu a').forEach(link => {
+      link.addEventListener('click', function () {
+        document.getElementById('navbarMenu').classList.remove('active');
+      });
+    });
+
+    function handleReservation(event) {
+      if (!isLoggedIn) {
+        event.preventDefault();
+        alert('Para realizar una reserva, primero debes iniciar sesión.');
+        window.location.href = /*[[@{/login}]]*/ '/login';
+      } else {
+        window.location.href = '/cliente/reservas/crear';
+      }
+    }
+
+    // Botones están declarados como enlaces Thymeleaf; no añadimos listeners a ids inexistentes
+
+    async function loadWeather() {
+      const weatherData = await fetchWeather('Lima');
+      const weatherWidget = document.getElementById('weatherWidget');
+      weatherWidget.innerHTML = `
+        <i class="fas fa-cloud-sun fa-2x"></i>
+        <div class="weather-temp">${weatherData.temp}°C</div>
+        <div class="weather-desc">${weatherData.description}</div>
+        <div class="weather-details">
+          <span><i class="fas fa-tint"></i> ${weatherData.humidity}%</span>
+          <span><i class="fas fa-wind"></i> ${weatherData.windSpeed} km/h</span>
+        </div>
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadWeather);
+  </script>
 </body>
 
 </html>
