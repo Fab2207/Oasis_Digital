@@ -11,6 +11,20 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
@@ -33,7 +47,9 @@ jobs:
       - name: Compilar proyecto
         run: mvn -B -DskipTests clean package
 
-      - name: Ejecutar Tests
+      - name: Ejecutar Tests (incluye Testcontainers)
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
         run: mvn -B test
 
       - name: Guardar artefacto JAR
