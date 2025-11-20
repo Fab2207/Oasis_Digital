@@ -7,7 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +18,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-@RequiredArgsConstructor
 public class JwtService {
+
+    public JwtService(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     private final JwtProperties jwtProperties;
 
@@ -53,17 +56,28 @@ public class JwtService {
     }
 
     private Claims getAllClaims(String token) {
-        return Jwts
-                .parserBuilder()
-                .setSigningKey(getKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            if (token == null || token.trim().isEmpty()) {
+                throw new IllegalArgumentException("Token no puede estar vacío");
+            }
+            return Jwts
+                    .parserBuilder()
+                    .setSigningKey(getKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al procesar token JWT: " + e.getMessage(), e);
+        }
     }
 
     public <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaims(token);
-        return claimsResolver.apply(claims);
+        try {
+            final Claims claims = getAllClaims(token);
+            return claimsResolver.apply(claims);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al extraer claim del token: " + e.getMessage(), e);
+        }
     }
 
     private Date getExpiration(String token) {

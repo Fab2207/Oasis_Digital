@@ -8,21 +8,26 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import  com.gestion.hotelera.model.Cliente;
-import  com.gestion.hotelera.repository.ClienteRepository;
+import com.gestion.hotelera.model.Cliente;
+import com.gestion.hotelera.repository.ClienteRepository;
 
+@ExtendWith(MockitoExtension.class)
 public class ClienteServiceTest {
 
+    @Mock
     private ClienteRepository clienteRepository;
+    
+    @Mock
     private AuditoriaService auditoriaService;
+    
     private ClienteService clienteService;
 
     @BeforeEach
     void setUp() {
-        clienteRepository = Mockito.mock(ClienteRepository.class);
-        auditoriaService = Mockito.mock(AuditoriaService.class);
         clienteService = new ClienteService(clienteRepository, auditoriaService);
     }
 
