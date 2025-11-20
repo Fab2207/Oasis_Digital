@@ -54,7 +54,6 @@ public class ReservaController {
         Long clienteIdParaHabitaciones = null;
 
         try {
-            // Primero intentamos obtener el cliente para filtrar habitaciones
             if (idCliente != null) {
                 Optional<Cliente> clientePorId = clienteService.obtenerClientePorId(idCliente);
                 if (clientePorId.isPresent()) {
@@ -71,7 +70,6 @@ public class ReservaController {
                 }
             }
 
-            // Obtener habitaciones disponibles excluyendo las ya reservadas por el cliente
             model.addAttribute("habitacionesDisponibles",
                     clienteIdParaHabitaciones != null
                             ? habitacionService.obtenerHabitacionesDisponiblesParaCliente(clienteIdParaHabitaciones)
@@ -81,7 +79,6 @@ public class ReservaController {
             return "reservas";
         }
 
-        // Ahora procesamos la información del cliente para mostrar en el formulario
         if (idCliente != null) {
             try {
                 Optional<Cliente> clientePorId = clienteService.obtenerClientePorId(idCliente);
@@ -97,7 +94,6 @@ public class ReservaController {
         } else if (dni != null && !dni.trim().isEmpty()) {
             try {
                 String dniLimpio = dni.trim();
-                // Validar que el DNI tenga exactamente 8 dígitos numéricos
                 if (!dniLimpio.matches("^\\d{8}$")) {
                     model.addAttribute("errorMessage", "El DNI debe contener exactamente 8 dígitos numéricos");
                 } else {
@@ -160,7 +156,6 @@ public class ReservaController {
                                  RedirectAttributes redirectAttributes,
                                  Authentication auth) {
         try {
-            // Validar que el DNI tenga exactamente 8 dígitos numéricos
             String dniLimpio = clienteDni != null ? clienteDni.trim() : "";
             if (!dniLimpio.matches("^\\d{8}$")) {
                 redirectAttributes.addFlashAttribute("errorMessage", "El DNI debe contener exactamente 8 dígitos numéricos");
@@ -183,7 +178,6 @@ public class ReservaController {
                 redirectAttributes.addFlashAttribute("errorMessage", "La fecha de inicio de la reserva no puede ser anterior a la fecha actual.");
                 return "redirect:/reservas";
             }
-            // La reserva siempre inicia como PENDIENTE, se activa cuando llegue la hora
             reserva.setEstadoReserva("PENDIENTE");
             Reserva reservaGuardada = reservaService.crearOActualizarReserva(reserva);
             redirectAttributes.addFlashAttribute("successMessage", "Reserva creada exitosamente. Puedes añadir servicios adicionales antes del pago.");
@@ -238,7 +232,6 @@ public class ReservaController {
         }
 
         try {
-            // Verificar que la reserva existe y está en estado válido
             var reservaOpt = reservaService.obtenerReservaPorId(id);
             if (reservaOpt.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Reserva no encontrada.");

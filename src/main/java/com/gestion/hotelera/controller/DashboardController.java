@@ -36,7 +36,6 @@ public class DashboardController {
             model.addAttribute("roles", roles);
 
             if (roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_CLIENTE"))) {
-                // Los clientes no tienen dashboard, van al index
                 return "redirect:/";
             }
         } catch (Exception e) {
@@ -46,7 +45,6 @@ public class DashboardController {
         try {
             var roles = auth.getAuthorities();
 
-            // Para clientes, agregar datos específicos
             if (roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_CLIENTE"))) {
                 try {
                     var cliente = clienteService.obtenerPorUsername(auth.getName());
@@ -58,7 +56,6 @@ public class DashboardController {
 
                         var reservas = reservaService.obtenerReservasPorClienteId(cliente.getId());
 
-                        // Contar manualmente para consistencia
                         long reservasActivas = reservas.stream()
                                 .filter(r -> "ACTIVA".equals(r.getEstadoReserva()) || "PENDIENTE".equals(r.getEstadoReserva()))
                                 .count();

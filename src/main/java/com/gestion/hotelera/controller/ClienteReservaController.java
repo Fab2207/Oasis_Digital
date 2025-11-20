@@ -89,12 +89,11 @@ public class ClienteReservaController {
                 return "redirect:/cliente/reservas/crear";
             }
 
-            // La reserva siempre inicia como PENDIENTE, se activa cuando llegue la hora
             reserva.setEstadoReserva("PENDIENTE");
 
             Reserva reservaGuardada = reservaService.crearOActualizarReserva(reserva);
 
-            redirectAttributes.addFlashAttribute("successMessage", "✅ Reserva creada exitosamente. Ahora puedes añadir servicios opcionales.");
+            redirectAttributes.addFlashAttribute("successMessage", "Reserva creada exitosamente. Ahora puedes añadir servicios opcionales.");
             return "redirect:/reservas/" + reservaGuardada.getId() + "/servicios?returnTo=dashboard";
 
         } catch (Exception e) {

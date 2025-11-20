@@ -94,7 +94,6 @@ public class EmpleadoController {
                                      RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
-            // Ignorar errores de contraseña vacía en actualización
             result.getFieldErrors().removeIf(error ->
                     "usuario.password".equals(error.getField()) &&
                             (empleado.getUsuario().getPassword() == null || empleado.getUsuario().getPassword().isEmpty())
