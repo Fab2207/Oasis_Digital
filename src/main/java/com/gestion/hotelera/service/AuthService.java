@@ -15,10 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.RequiredArgsConstructor;
+
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
@@ -27,22 +26,39 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final ClienteService clienteService;
 
+    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, ClienteService clienteService) {
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.clienteService = clienteService;
+    }
+
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        if (request == null || !request.isValid()) {
+            throw new IllegalArgumentException("Datos de login inválidos");
+        }
 
-        Usuario user = usuarioRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
-        String token = jwtService.getToken(user);
+            Usuario user = usuarioRepository.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-        return AuthResponse.builder()
-            .token(token)
-            .build();
+            String token = jwtService.getToken(user);
+
+            return new AuthResponse(token);
+        } catch (Exception e) {
+            throw new RuntimeException("Error en autenticación: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        if (request == null || !request.isValid()) {
+            throw new IllegalArgumentException("Datos de registro inválidos");
+        }
 
         if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("El nombre de usuario ya está en uso.");
@@ -51,7 +67,7 @@ public class AuthService {
         Usuario user = new Usuario();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRol("ROLE_CLIENTE"); 
+        user.setRol("ROLE_CLIENTE");
 
         Usuario userGuardado = usuarioRepository.save(user);
 
@@ -68,10 +84,6 @@ public class AuthService {
 
         String token = jwtService.getToken(userGuardado);
 
-        System.out.println("✅ Cliente registrado: " + userGuardado.getUsername());
-
-        return AuthResponse.builder()
-            .token(token)
-            .build();
+        return new AuthResponse(token);
     }
 }

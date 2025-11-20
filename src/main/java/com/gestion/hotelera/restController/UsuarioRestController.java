@@ -5,7 +5,7 @@ import com.gestion.hotelera.model.Usuario;
 import com.gestion.hotelera.repository.ClienteRepository;
 import com.gestion.hotelera.repository.UsuarioRepository;
 import com.gestion.hotelera.security.JwtService;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +14,17 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@RequiredArgsConstructor
 public class UsuarioRestController {
 
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
     private final JwtService jwtService;
+
+    public UsuarioRestController(UsuarioRepository usuarioRepository, ClienteRepository clienteRepository, JwtService jwtService) {
+        this.usuarioRepository = usuarioRepository;
+        this.clienteRepository = clienteRepository;
+        this.jwtService = jwtService;
+    }
 
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
@@ -28,20 +33,35 @@ public class UsuarioRestController {
 
     @GetMapping("/perfil")
     public ResponseEntity<?> obtenerPerfil(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        String username = jwtService.getUsernameFromToken(token);
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(401).body("Token de autorización inválido");
+            }
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("Usuario no encontrado");
+            String token = authHeader.replace("Bearer ", "");
+            if (token.trim().isEmpty()) {
+                return ResponseEntity.status(401).body("Token vacío");
+            }
+
+            String username = jwtService.getUsernameFromToken(token);
+            if (username == null || username.trim().isEmpty()) {
+                return ResponseEntity.status(401).body("Token inválido");
+            }
+
+            Optional<Usuario> usuarioOpt = usuarioRepository.findByUsername(username);
+            if (usuarioOpt.isEmpty()) {
+                return ResponseEntity.status(404).body("Usuario no encontrado");
+            }
+
+            Usuario usuario = usuarioOpt.get();
+            if (usuario.getCliente() == null) {
+                return ResponseEntity.status(403).body("El usuario no tiene perfil de cliente");
+            }
+
+            return ResponseEntity.ok(usuario.getCliente());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error interno del servidor");
         }
-
-        Usuario usuario = usuarioOpt.get();
-        if (usuario.getCliente() == null) {
-            return ResponseEntity.status(403).body("El usuario no tiene perfil de cliente");
-        }
-
-        return ResponseEntity.ok(usuario.getCliente());
     }
 
     @PostMapping("/registrarCliente")

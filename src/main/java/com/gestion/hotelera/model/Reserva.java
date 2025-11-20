@@ -2,16 +2,12 @@ package com.gestion.hotelera.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 @Entity
 @Table(name = "reservas")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -53,6 +49,21 @@ public class Reserva {
     @Column(name = "fecha_salida_real")
     private LocalDate fechaSalidaReal;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "reserva_servicios",
+            joinColumns = @JoinColumn(name = "reserva_id"),
+            inverseJoinColumns = @JoinColumn(name = "servicio_id"))
+    private Set<Servicio> servicios = new HashSet<>();
+
+    @OneToOne(mappedBy = "reserva", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Pago pago;
+
+    @ElementCollection
+    @CollectionTable(name = "reserva_opciones_servicio", joinColumns = @JoinColumn(name = "reserva_id"))
+    @MapKeyColumn(name = "servicio_nombre")
+    @Column(name = "opcion_seleccionada")
+    private Map<String, String> opcionesServicios = new HashMap<>();
+
     public Reserva(Cliente cliente, Habitacion habitacion, LocalDate fechaInicio, LocalDate fechaFin, LocalTime horaEntrada, LocalTime horaSalida, Integer diasEstadia, Double totalPagar, String estadoReserva) {
         this.cliente = cliente;
         this.habitacion = habitacion;
@@ -64,4 +75,53 @@ public class Reserva {
         this.totalPagar = totalPagar;
         this.estadoReserva = estadoReserva;
     }
+
+    public Reserva() {}
+    public double calcularTotalServicios() {
+        if (servicios == null || servicios.isEmpty()) return 0.0;
+        return servicios.stream().mapToDouble(servicio -> servicio.getPrecio() != null ? servicio.getPrecio() : 0.0).sum();
+    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
+    public Habitacion getHabitacion() { return habitacion; }
+    public void setHabitacion(Habitacion habitacion) { this.habitacion = habitacion; }
+    public LocalDate getFechaInicio() { return fechaInicio; }
+    public void setFechaInicio(LocalDate fechaInicio) {
+        if (fechaInicio != null && fechaFin != null && fechaInicio.isAfter(fechaFin)) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha de fin");
+        }
+        this.fechaInicio = fechaInicio;
+    }
+    public LocalDate getFechaFin() { return fechaFin; }
+    public void setFechaFin(LocalDate fechaFin) {
+        if (fechaInicio != null && fechaFin != null && fechaFin.isBefore(fechaInicio)) {
+            throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la fecha de inicio");
+        }
+        this.fechaFin = fechaFin;
+    }
+    public LocalTime getHoraEntrada() { return horaEntrada; }
+    public void setHoraEntrada(LocalTime horaEntrada) { this.horaEntrada = horaEntrada; }
+    public LocalTime getHoraSalida() { return horaSalida; }
+    public void setHoraSalida(LocalTime horaSalida) { this.horaSalida = horaSalida; }
+    public Integer getDiasEstadia() { return diasEstadia; }
+    public void setDiasEstadia(Integer diasEstadia) { this.diasEstadia = diasEstadia; }
+    public Double getTotalPagar() { return totalPagar; }
+    public void setTotalPagar(Double totalPagar) {
+        if (totalPagar != null && totalPagar < 0) {
+            throw new IllegalArgumentException("El total a pagar no puede ser negativo");
+        }
+        this.totalPagar = totalPagar;
+    }
+    public String getEstadoReserva() { return estadoReserva; }
+    public void setEstadoReserva(String estadoReserva) { this.estadoReserva = estadoReserva; }
+    public LocalDate getFechaSalidaReal() { return fechaSalidaReal; }
+    public void setFechaSalidaReal(LocalDate fechaSalidaReal) { this.fechaSalidaReal = fechaSalidaReal; }
+    public Set<Servicio> getServicios() { return servicios; }
+    public void setServicios(Set<Servicio> servicios) { this.servicios = servicios; }
+    public Pago getPago() { return pago; }
+    public void setPago(Pago pago) { this.pago = pago; }
+    public Map<String, String> getOpcionesServicios() { return opcionesServicios; }
+    public void setOpcionesServicios(Map<String, String> opcionesServicios) { this.opcionesServicios = opcionesServicios; }
 }

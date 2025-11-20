@@ -34,25 +34,38 @@ public class AuditoriaController {
             @RequestParam(required = false) String search,
             Model model) {
 
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Auditoria> logsPage;
 
-        if (dniEmpleado != null && !dniEmpleado.trim().isEmpty()) {
-            logsPage = auditoriaService.obtenerLogsPorDniEmpleado(dniEmpleado.trim(), pageable);
-            model.addAttribute("filtroDni", dniEmpleado);
-            if (logsPage.isEmpty()) {
-                model.addAttribute("message", "No se encontraron logs para el DNI: " + dniEmpleado + " en la página actual.");
+        try {
+            if (dniEmpleado != null && !dniEmpleado.trim().isEmpty()) {
+                String dniSanitizado = dniEmpleado.trim().replaceAll("[^0-9]", "");
+                if (dniSanitizado.length() == 8) {
+                    logsPage = auditoriaService.obtenerLogsPorDniEmpleado(dniSanitizado, pageable);
+                    model.addAttribute("filtroDni", dniSanitizado);
+                    if (logsPage.isEmpty()) {
+                        model.addAttribute("message", "No se encontraron logs para el DNI especificado");
+                    }
+                } else {
+                    logsPage = auditoriaService.obtenerTodosLosLogs(pageable);
+                    model.addAttribute("errorMessage", "DNI inválido");
+                }
+            } else if (search != null && !search.trim().isEmpty()) {
+                String searchSanitizado = search.trim().substring(0, Math.min(search.trim().length(), 50));
+                logsPage = auditoriaService.searchLogs(searchSanitizado, pageable);
+                model.addAttribute("search", searchSanitizado);
+                if (logsPage.isEmpty()) {
+                    model.addAttribute("message", "No se encontraron logs que coincidan con la búsqueda");
+                }
+            } else {
+                logsPage = auditoriaService.obtenerTodosLosLogs(pageable);
             }
-        } else if (search != null && !search.trim().isEmpty()) {
-            logsPage = auditoriaService.searchLogs(search.trim(), pageable);
-            model.addAttribute("search", search);
-            if (logsPage.isEmpty()) {
-                model.addAttribute("message", "No se encontraron logs que coincidan con '" + search + "' en la página actual.");
-            }
-        } else {
+        } catch (Exception e) {
             logsPage = auditoriaService.obtenerTodosLosLogs(pageable);
+            model.addAttribute("errorMessage", "Error al procesar la consulta");
         }
 
         model.addAttribute("logsPage", logsPage);

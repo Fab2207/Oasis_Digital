@@ -38,7 +38,9 @@ public class ReservaController {
         Cliente cliente = clienteService.obtenerPorEmail(auth.getName());
         model.addAttribute("clienteEncontrado", cliente);
         model.addAttribute("reserva", new Reserva());
-        model.addAttribute("habitacionesDisponibles", habitacionService.obtenerHabitacionesDisponibles());
+        model.addAttribute("habitacionesDisponibles",
+                cliente != null ? habitacionService.obtenerHabitacionesDisponiblesParaCliente(cliente.getId())
+                        : habitacionService.obtenerHabitacionesDisponibles());
         return "reservas";
     }
 
@@ -48,22 +50,67 @@ public class ReservaController {
                                        @RequestParam(name = "idCliente", required = false) Long idCliente) {
         model.addAttribute("cliente", new Cliente());
         model.addAttribute("reserva", new Reserva());
-        model.addAttribute("habitacionesDisponibles", habitacionService.obtenerHabitacionesDisponibles());
+
+        Long clienteIdParaHabitaciones = null;
+
+        try {
+            // Primero intentamos obtener el cliente para filtrar habitaciones
+            if (idCliente != null) {
+                Optional<Cliente> clientePorId = clienteService.obtenerClientePorId(idCliente);
+                if (clientePorId.isPresent()) {
+                    clienteIdParaHabitaciones = clientePorId.get().getId();
+                }
+            } else if (dni != null && !dni.trim().isEmpty()) {
+                String dniLimpio = dni.trim();
+                // Validar que el DNI tenga exactamente 8 dígitos numéricos
+                if (dniLimpio.matches("^\\d{8}$")) {
+                    Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(dniLimpio);
+                    if (clienteOptional.isPresent()) {
+                        clienteIdParaHabitaciones = clienteOptional.get().getId();
+                    }
+                }
+            }
+
+            // Obtener habitaciones disponibles excluyendo las ya reservadas por el cliente
+            model.addAttribute("habitacionesDisponibles",
+                    clienteIdParaHabitaciones != null
+                            ? habitacionService.obtenerHabitacionesDisponiblesParaCliente(clienteIdParaHabitaciones)
+                            : habitacionService.obtenerHabitacionesDisponibles());
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Error al cargar habitaciones disponibles");
+            return "reservas";
+        }
+
+        // Ahora procesamos la información del cliente para mostrar en el formulario
         if (idCliente != null) {
-            Optional<Cliente> clientePorId = clienteService.obtenerClientePorId(idCliente);
-            if (clientePorId.isPresent()) {
-                model.addAttribute("clienteEncontrado", clientePorId.get());
-                model.addAttribute("cliente", clientePorId.get());
-            } else {
-                model.addAttribute("errorMessage", "Cliente con ID " + idCliente + " no encontrado.");
+            try {
+                Optional<Cliente> clientePorId = clienteService.obtenerClientePorId(idCliente);
+                if (clientePorId.isPresent()) {
+                    model.addAttribute("clienteEncontrado", clientePorId.get());
+                    model.addAttribute("cliente", clientePorId.get());
+                } else {
+                    model.addAttribute("errorMessage", "Cliente no encontrado");
+                }
+            } catch (Exception e) {
+                model.addAttribute("errorMessage", "Error al buscar cliente");
             }
         } else if (dni != null && !dni.trim().isEmpty()) {
-            Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(dni);
-            if (clienteOptional.isPresent()) {
-                model.addAttribute("clienteEncontrado", clienteOptional.get());
-                model.addAttribute("cliente", clienteOptional.get());
-            } else {
-                model.addAttribute("errorMessage", "Cliente con DNI " + dni + " no encontrado.");
+            try {
+                String dniLimpio = dni.trim();
+                // Validar que el DNI tenga exactamente 8 dígitos numéricos
+                if (!dniLimpio.matches("^\\d{8}$")) {
+                    model.addAttribute("errorMessage", "El DNI debe contener exactamente 8 dígitos numéricos");
+                } else {
+                    Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(dniLimpio);
+                    if (clienteOptional.isPresent()) {
+                        model.addAttribute("clienteEncontrado", clienteOptional.get());
+                        model.addAttribute("cliente", clienteOptional.get());
+                    } else {
+                        model.addAttribute("errorMessage", "Cliente no encontrado");
+                    }
+                }
+            } catch (Exception e) {
+                model.addAttribute("errorMessage", "Error al buscar cliente");
             }
         }
         return "reservas";
@@ -71,12 +118,19 @@ public class ReservaController {
 
     @PostMapping("/buscar-cliente")
     public String buscarClienteParaReserva(@RequestParam("dniBuscar") String dni, RedirectAttributes redirectAttributes) {
-        Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(dni);
+        // Validar que el DNI tenga exactamente 8 dígitos numéricos
+        String dniLimpio = dni != null ? dni.trim() : "";
+        if (!dniLimpio.matches("^\\d{8}$")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "El DNI debe contener exactamente 8 dígitos numéricos");
+            return "redirect:/reservas/crear";
+        }
+
+        Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(dniLimpio);
         if (clienteOptional.isPresent()) {
             redirectAttributes.addFlashAttribute("successMessage", "Cliente encontrado!");
-            return "redirect:/reservas/crear?dni=" + dni;
+            return "redirect:/reservas/crear?dni=" + dniLimpio;
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cliente con DNI " + dni + " no encontrado. Por favor, regístrelo primero.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Cliente con DNI " + dniLimpio + " no encontrado. Por favor, regístrelo primero.");
             return "redirect:/reservas/crear";
         }
     }
@@ -106,56 +160,101 @@ public class ReservaController {
                                  RedirectAttributes redirectAttributes,
                                  Authentication auth) {
         try {
-            Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(clienteDni);
+            // Validar que el DNI tenga exactamente 8 dígitos numéricos
+            String dniLimpio = clienteDni != null ? clienteDni.trim() : "";
+            if (!dniLimpio.matches("^\\d{8}$")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "El DNI debe contener exactamente 8 dígitos numéricos");
+                return "redirect:/reservas";
+            }
+
+            Optional<Cliente> clienteOptional = clienteService.buscarClientePorDni(dniLimpio);
             if (clienteOptional.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Error: Cliente no encontrado para el DNI proporcionado.");
                 return "redirect:/reservas";
             }
             reserva.setCliente(clienteOptional.get());
-            reserva.setHabitacion(new Habitacion(habitacionId));
+            Optional<Habitacion> habitacionOpt = habitacionService.buscarHabitacionPorId(habitacionId);
+            if (habitacionOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Habitación no encontrada.");
+                return "redirect:/reservas";
+            }
+            reserva.setHabitacion(habitacionOpt.get());
             if (reserva.getFechaInicio().isBefore(LocalDate.now())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "La fecha de inicio de la reserva no puede ser anterior a la fecha actual.");
                 return "redirect:/reservas";
             }
-            if (reserva.getFechaInicio().isEqual(LocalDate.now())) {
-                reserva.setEstadoReserva("ACTIVA");
-            } else {
-                reserva.setEstadoReserva("PENDIENTE");
-            }
-            reservaService.crearOActualizarReserva(reserva);
-            redirectAttributes.addFlashAttribute("successMessage", "Reserva creada exitosamente!");
+            // La reserva siempre inicia como PENDIENTE, se activa cuando llegue la hora
+            reserva.setEstadoReserva("PENDIENTE");
+            Reserva reservaGuardada = reservaService.crearOActualizarReserva(reserva);
+            redirectAttributes.addFlashAttribute("successMessage", "Reserva creada exitosamente. Puedes añadir servicios adicionales antes del pago.");
 
-            // Redirección inteligente por rol
-            if (auth != null && auth.isAuthenticated() &&
+            String returnTo = (auth != null && auth.isAuthenticated() &&
                     auth.getAuthorities().stream().anyMatch(a ->
-                            "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_RECEPCIONISTA".equals(a.getAuthority()))) {
-                Long clienteId = clienteOptional.get().getId();
-                return "redirect:/clientes/historial?id=" + clienteId;
-            }
+                            "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_RECEPCIONISTA".equals(a.getAuthority())))
+                    ? "historial"
+                    : null;
 
-            return "redirect:/reservas";
+            String redirectUrl = "/reservas/" + reservaGuardada.getId() + "/servicios";
+            if (returnTo != null) {
+                redirectUrl += "?returnTo=" + returnTo;
+            }
+            return "redirect:" + redirectUrl;
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al crear la reserva: " + e.getMessage());
             return "redirect:/reservas";
         }
     }
 
+
+
     @PostMapping("/cancelar/{id}")
-    public String cancelarReserva(@PathVariable Long id, RedirectAttributes redirectAttributes, @RequestHeader(value = "Referer", required = false) String referer) {
-        if (reservaService.cancelarReserva(id)) {
-            redirectAttributes.addFlashAttribute("successMessage", "Reserva cancelada exitosamente.");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "No se pudo cancelar la reserva.");
+    public String cancelarReserva(@PathVariable Long id, RedirectAttributes redirectAttributes,
+                                  @RequestHeader(value = "Referer", required = false) String referer,
+                                  Authentication auth) {
+        try {
+            String userRole = auth.getAuthorities().iterator().next().getAuthority();
+            if (reservaService.cancelarReserva(id, userRole)) {
+                redirectAttributes.addFlashAttribute("successMessage", "Reserva cancelada exitosamente.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "No se pudo cancelar la reserva.");
+            }
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:" + (referer != null ? referer : "/dashboard");
     }
 
+    @PostMapping("/cancelar-cliente/{id}")
+    public String cancelarReservaCliente(@PathVariable Long id, RedirectAttributes redirectAttributes, Authentication auth) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Usted no tiene permisos para cancelar su reserva. Por favor, comuníquese con recepción para realizar esta acción.");
+        return "redirect:/dashboard";
+    }
+
     @PostMapping("/finalizar/{id}")
     public String finalizarReserva(@PathVariable Long id, RedirectAttributes redirectAttributes, @RequestHeader(value = "Referer", required = false) String referer) {
-        if (reservaService.finalizarReserva(id)) {
-            redirectAttributes.addFlashAttribute("successMessage", "Reserva finalizada (check-out) exitosamente.");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "No se pudo finalizar la reserva.");
+        if (id == null || id <= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ID de reserva inválido.");
+            return "redirect:" + (referer != null ? referer : "/dashboard");
+        }
+
+        try {
+            // Verificar que la reserva existe y está en estado válido
+            var reservaOpt = reservaService.obtenerReservaPorId(id);
+            if (reservaOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Reserva no encontrada.");
+                return "redirect:" + (referer != null ? referer : "/dashboard");
+            }
+
+            var reserva = reservaOpt.get();
+            if ("FINALIZADA".equals(reserva.getEstadoReserva())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "La reserva ya está finalizada.");
+                return "redirect:" + (referer != null ? referer : "/dashboard");
+            }
+
+            reservaService.finalizarReserva(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Reserva finalizada exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al finalizar reserva: " + e.getMessage());
         }
         return "redirect:" + (referer != null ? referer : "/dashboard");
     }

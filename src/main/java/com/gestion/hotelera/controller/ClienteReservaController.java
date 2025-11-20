@@ -25,8 +25,8 @@ public class ClienteReservaController {
     private final ReservaService reservaService;
 
     public ClienteReservaController(ClienteService clienteService,
-            HabitacionService habitacionService,
-            ReservaService reservaService) {
+                                    HabitacionService habitacionService,
+                                    ReservaService reservaService) {
         this.clienteService = clienteService;
         this.habitacionService = habitacionService;
         this.reservaService = reservaService;
@@ -34,51 +34,68 @@ public class ClienteReservaController {
 
     @GetMapping("/crear")
     public String mostrarFormularioReserva(Model model,
-            Authentication auth,
-            @RequestParam(name = "habitacionId", required = false) Long habitacionId) {
+                                           Authentication auth,
+                                           @RequestParam(name = "habitacionId", required = false) Long habitacionId) {
         if (auth == null || !auth.isAuthenticated()) {
             return "redirect:/login";
         }
 
-        Cliente cliente = clienteService.obtenerPorUsername(auth.getName());
-        if (cliente == null) {
+        try {
+            Cliente cliente = clienteService.obtenerPorUsername(auth.getName());
+            if (cliente == null) {
+                return "redirect:/login";
+            }
+
+            model.addAttribute("cliente", cliente);
+            model.addAttribute("reserva", new Reserva());
+            model.addAttribute("habitacionesDisponibles",
+                    habitacionService.obtenerHabitacionesDisponiblesParaCliente(cliente.getId()));
+            if (habitacionId != null && habitacionId > 0) {
+                model.addAttribute("habitacionId", habitacionId);
+            }
+            return "generarReserva";
+        } catch (Exception e) {
             return "redirect:/login";
         }
-
-        model.addAttribute("cliente", cliente);
-        model.addAttribute("reserva", new Reserva());
-        model.addAttribute("habitacionesDisponibles", habitacionService.obtenerHabitacionesDisponibles());
-        if (habitacionId != null) {
-            model.addAttribute("habitacionId", habitacionId);
-        }
-        return "generarReserva";
     }
 
     @PostMapping("/guardar")
     public String guardarReserva(@ModelAttribute Reserva reserva,
-            @RequestParam("habitacionId") Long habitacionId,
-            Authentication auth,
-            RedirectAttributes redirectAttributes) {
+                                 @RequestParam("habitacionId") Long habitacionId,
+                                 Authentication auth,
+                                 RedirectAttributes redirectAttributes) {
         try {
+            if (habitacionId == null || habitacionId <= 0) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Habitación inválida");
+                return "redirect:/cliente/reservas/crear";
+            }
+
             Cliente cliente = clienteService.obtenerPorUsername(auth.getName());
+            if (cliente == null) {
+                return "redirect:/login";
+            }
+
+            Optional<Habitacion> habitacionOpt = habitacionService.buscarHabitacionPorId(habitacionId);
+            if (habitacionOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Habitación no encontrada");
+                return "redirect:/cliente/reservas/crear";
+            }
+
             reserva.setCliente(cliente);
-            reserva.setHabitacion(new Habitacion(habitacionId));
+            reserva.setHabitacion(habitacionOpt.get());
 
             if (reserva.getFechaInicio().isBefore(LocalDate.now())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "La fecha de inicio no puede ser anterior a hoy.");
                 return "redirect:/cliente/reservas/crear";
             }
 
-            if (reserva.getFechaInicio().isEqual(LocalDate.now())) {
-                reserva.setEstadoReserva("ACTIVA");
-            } else {
-                reserva.setEstadoReserva("PENDIENTE");
-            }
+            // La reserva siempre inicia como PENDIENTE, se activa cuando llegue la hora
+            reserva.setEstadoReserva("PENDIENTE");
 
-            reservaService.crearOActualizarReserva(reserva);
+            Reserva reservaGuardada = reservaService.crearOActualizarReserva(reserva);
 
-            redirectAttributes.addFlashAttribute("successMessage", "✅ Reserva creada exitosamente.");
-            return "redirect:/dashboard";
+            redirectAttributes.addFlashAttribute("successMessage", "✅ Reserva creada exitosamente. Ahora puedes añadir servicios opcionales.");
+            return "redirect:/reservas/" + reservaGuardada.getId() + "/servicios?returnTo=dashboard";
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al crear la reserva: " + e.getMessage());

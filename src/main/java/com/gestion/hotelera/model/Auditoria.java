@@ -1,15 +1,7 @@
 package com.gestion.hotelera.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "auditoria")
 public class Auditoria {
@@ -37,12 +29,22 @@ public class Auditoria {
     @Column
     private Long entidadAfectadaId;
 
+    public Auditoria() {}
     public Auditoria(LocalDateTime timestamp, Empleado empleado, String tipoAccion, String detalleAccion, String entidadAfectada, Long entidadAfectadaId) {
-        this.timestamp = timestamp;
-        this.empleado = empleado;
-        this.tipoAccion = tipoAccion;
-        this.detalleAccion = detalleAccion;
-        this.entidadAfectada = entidadAfectada;
-        this.entidadAfectadaId = entidadAfectadaId;
+        this.timestamp = timestamp; this.empleado = empleado; this.tipoAccion = tipoAccion; this.detalleAccion = detalleAccion; this.entidadAfectada = entidadAfectada; this.entidadAfectadaId = entidadAfectadaId;
     }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public Empleado getEmpleado() { return empleado; }
+    public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
+    public String getTipoAccion() { return tipoAccion; }
+    public void setTipoAccion(String tipoAccion) { this.tipoAccion = tipoAccion; }
+    public String getDetalleAccion() { return detalleAccion; }
+    public void setDetalleAccion(String detalleAccion) { this.detalleAccion = detalleAccion; }
+    public String getEntidadAfectada() { return entidadAfectada; }
+    public void setEntidadAfectada(String entidadAfectada) { this.entidadAfectada = entidadAfectada; }
+    public Long getEntidadAfectadaId() { return entidadAfectadaId; }
+    public void setEntidadAfectadaId(Long entidadAfectadaId) { this.entidadAfectadaId = entidadAfectadaId; }
 }

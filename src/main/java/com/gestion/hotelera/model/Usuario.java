@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,9 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 @Entity
 @Table(name = "usuarios")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -44,11 +40,40 @@ public class Usuario implements UserDetails {
     @JsonIgnore
     private Cliente cliente;
 
+    public Usuario() {}
     public Usuario(String username, String password, String rol) {
-        this.username = username;
-        this.password = password;
-        this.rol = rol;
+        setUsername(username);
+        setPassword(password);
+        setRol(rol);
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) {
+        if (username != null && username.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de usuario no puede estar vacío");
+        }
+        if (username != null && (username.contains("<") || username.contains(">") || username.contains("'") || username.contains("\"") || username.contains(";") || username.contains("--"))) {
+            throw new IllegalArgumentException("El nombre de usuario contiene caracteres no permitidos");
+        }
+        this.username = username != null ? username.trim() : null;
+    }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) {
+        if (password != null && password.isEmpty()) {
+            throw new IllegalArgumentException("La contraseña no puede estar vacía");
+        }
+        this.password = password;
+    }
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
+    public Empleado getEmpleado() { return empleado; }
+    public void setEmpleado(Empleado empleado) { this.empleado = empleado; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
