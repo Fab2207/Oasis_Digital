@@ -57,6 +57,18 @@ jobs:
         with:
           name: backend-jar
 
+      - name: Verificar archivos en target/
+        run: ls -la target/
+
+      - name: Verificar si el archivo JAR existe
+        run: |
+          if [ -f target/*.jar ]; then
+            echo "Archivo JAR encontrado."
+          else
+            echo "No se encontró el archivo JAR."
+            exit 1
+          fi
+
       - name: Crear una carpeta de despliegue y mover artefacto
         run: |
           mkdir -p deploy
