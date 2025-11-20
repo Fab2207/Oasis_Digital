@@ -4,13 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "empleados")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -32,7 +26,7 @@ public class Empleado {
 
     @NotBlank(message = "El DNI es obligatorio")
     @Size(min = 8, max = 8, message = "El DNI debe tener 8 dígitos")
-    @Pattern(regexp = "\\d+", message = "El DNI solo debe contener números")
+    @Pattern(regexp = "^\\d{8}$", message = "El DNI debe tener exactamente 8 dígitos")
     @Column(nullable = false, unique = true, length = 20)
     private String dni;
 
@@ -61,11 +55,22 @@ public class Empleado {
     }
 
     public Empleado(String nombres, String apellidos, String dni, String email, String telefono, Usuario usuario) {
-        this.nombres = nombres;
-        this.apellidos = apellidos;
-        this.dni = dni;
-        this.email = email;
-        this.telefono = telefono;
-        this.usuario = usuario;
+        this.nombres = nombres; this.apellidos = apellidos; this.dni = dni; this.email = email; this.telefono = telefono; this.usuario = usuario;
     }
+
+    public Empleado() {}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getNombres() { return nombres; }
+    public void setNombres(String nombres) { this.nombres = nombres; }
+    public String getApellidos() { return apellidos; }
+    public void setApellidos(String apellidos) { this.apellidos = apellidos; }
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 }

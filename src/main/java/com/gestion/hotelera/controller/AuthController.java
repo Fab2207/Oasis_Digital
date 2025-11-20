@@ -4,26 +4,44 @@ import com.gestion.hotelera.dto.AuthResponse;
 import com.gestion.hotelera.dto.LoginRequest;
 import com.gestion.hotelera.dto.RegisterRequest;
 import com.gestion.hotelera.service.AuthService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
+        try {
+            if (request == null || !request.isValid()) {
+                return ResponseEntity.badRequest().build();
+            }
+            AuthResponse response = authService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).build();
+        }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        try {
+            if (request == null) {
+                return ResponseEntity.badRequest().body("{\"error\":\"Datos de registro requeridos\"}");
+            }
+            AuthResponse response = authService.register(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("{\"error\":\"" + e.getMessage() + "\"}");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"error\":\"Error interno del servidor\"}");
+        }
     }
 }

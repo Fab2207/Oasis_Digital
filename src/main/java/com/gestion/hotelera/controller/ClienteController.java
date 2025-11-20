@@ -1,5 +1,6 @@
 package com.gestion.hotelera.controller;
 
+import com.gestion.hotelera.exception.ClienteConReservasActivasException;
 import com.gestion.hotelera.model.Cliente;
 import com.gestion.hotelera.model.Reserva;
 import com.gestion.hotelera.service.ClienteService;
@@ -27,38 +28,46 @@ public class ClienteController {
         this.reservaService = reservaService;
     }
     @GetMapping("/editar/{id}")
-    public String editarCliente(@PathVariable Long id, Model model, Authentication auth) {
-        // Permitir que el propio cliente edite su perfil
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
+    public String editarCliente(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        if (id == null || id <= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ID inválido");
+            return "redirect:/clientes/historial";
         }
-        Optional<Cliente> clienteOpt = clienteService.buscarClientePorId(id);
-        if (clienteOpt.isEmpty()) {
-            return "redirect:/";
+
+        try {
+            Optional<Cliente> clienteOpt = clienteService.obtenerClientePorId(id);
+            if (clienteOpt.isPresent()) {
+                model.addAttribute("cliente", clienteOpt.get());
+                return "editarCliente";
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al cargar cliente: " + e.getMessage());
+            return "redirect:/clientes/historial";
         }
-        Cliente cliente = clienteOpt.get();
-        model.addAttribute("cliente", cliente);
-        return "editarCliente";
+
+        redirectAttributes.addFlashAttribute("errorMessage", "Cliente no encontrado");
+        return "redirect:/clientes/historial";
     }
 
     @PostMapping("/editar/{id}")
     public String actualizarCliente(@PathVariable Long id,
-                                    @ModelAttribute("cliente") Cliente cliente,
-                                    RedirectAttributes redirectAttributes,
-                                    Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
+                                    @ModelAttribute Cliente cliente,
+                                    RedirectAttributes redirectAttributes) {
+        System.out.println("=== ACTUALIZANDO CLIENTE ID: " + id + " ===");
+        if (cliente == null || id == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Datos inválidos.");
+            return "redirect:/clientes/historial";
         }
+
+        cliente.setId(id);
+
         try {
-            cliente.setId(id);
             clienteService.actualizarCliente(cliente);
-            redirectAttributes.addFlashAttribute("successMessage", "Datos actualizados correctamente.");
-            return "redirect:/dashboard";
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-            return "redirect:/clientes/editar/" + id;
-        } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al actualizar el cliente.");
+            redirectAttributes.addFlashAttribute("successMessage", "Cliente actualizado correctamente.");
+            return "redirect:/clientes/historial?id=" + id;
+        } catch (Exception e) {
+            System.out.println("Error al actualizar cliente: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
             return "redirect:/clientes/editar/" + id;
         }
     }
@@ -108,15 +117,21 @@ public class ClienteController {
             @RequestParam(value = "dni", required = false) String dni
     ) {
         if (dni != null && !dni.isBlank()) {
-            Optional<Cliente> porDni = clienteService.buscarPorDniOptional(dni);
-            if (porDni.isPresent()) {
-                Cliente cliente = porDni.get();
-                model.addAttribute("cliente", cliente);
-                List<Reserva> reservasCliente = reservaService.obtenerReservasPorClienteId(cliente.getId());
-                model.addAttribute("reservasCliente", reservasCliente);
-                return "historialCliente";
+            // Validar que el DNI tenga exactamente 8 dígitos numéricos
+            String dniLimpio = dni.trim();
+            if (!dniLimpio.matches("^\\d{8}$")) {
+                model.addAttribute("errorMessage", "El DNI debe contener exactamente 8 dígitos numéricos");
             } else {
-                model.addAttribute("errorMessage", "No se encontró cliente con DNI: " + dni);
+                Optional<Cliente> porDni = clienteService.buscarPorDniOptional(dniLimpio);
+                if (porDni.isPresent()) {
+                    Cliente cliente = porDni.get();
+                    model.addAttribute("cliente", cliente);
+                    List<Reserva> reservasCliente = reservaService.obtenerReservasPorClienteId(cliente.getId());
+                    model.addAttribute("reservasCliente", reservasCliente);
+                    return "historialCliente";
+                } else {
+                    model.addAttribute("errorMessage", "No se encontró cliente con DNI: " + dniLimpio);
+                }
             }
         }
 
@@ -147,12 +162,21 @@ public class ClienteController {
 
     @PostMapping("/eliminar/{id}")
     public String eliminarCliente(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        boolean eliminado = clienteService.eliminarClientePorId(id);
-        if (eliminado) {
-            redirectAttributes.addFlashAttribute("successMessage", "Cliente eliminado correctamente.");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "No se pudo eliminar el cliente.");
+        try {
+            boolean eliminado = clienteService.eliminarClientePorId(id);
+            if (eliminado) {
+                redirectAttributes.addFlashAttribute("successMessage", "Cliente eliminado correctamente.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "No se pudo eliminar el cliente.");
+            }
+            return "redirect:/clientes/historial";
+        } catch (ClienteConReservasActivasException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "No se puede eliminar el cliente porque tiene reservas activas. Debe cancelar o finalizar las reservas primero.");
+            redirectAttributes.addFlashAttribute("reservasBloqueo", ex.getReservasActivas());
+            return "redirect:/clientes/historial?id=" + ex.getClienteId();
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar cliente: " + e.getMessage());
+            return "redirect:/clientes/historial";
         }
-        return "redirect:/clientes/historial";
     }
 }

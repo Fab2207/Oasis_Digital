@@ -27,6 +27,19 @@ public class EmpleadoService {
 
     @Transactional
     public Empleado registrarRecepcionista(Empleado empleado) {
+        if (empleado == null) {
+            throw new IllegalArgumentException("El empleado no puede ser nulo");
+        }
+        if (empleado.getDni() == null || empleado.getDni().trim().isEmpty()) {
+            throw new IllegalArgumentException("El DNI no puede estar vacío");
+        }
+        if (empleado.getEmail() == null || empleado.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("El email no puede estar vacío");
+        }
+        if (empleado.getUsuario() == null) {
+            throw new IllegalArgumentException("Los datos de usuario no pueden estar vacíos");
+        }
+
         if (empleadoRepository.findByDni(empleado.getDni()).isPresent()) {
             throw new IllegalArgumentException("Ya existe un empleado con el DNI '" + empleado.getDni() + "'.");
         }
@@ -38,7 +51,7 @@ public class EmpleadoService {
         }
 
         String rawPassword = empleado.getUsuario().getPassword();
-        if (rawPassword == null || rawPassword.isEmpty()) {
+        if (rawPassword == null || rawPassword.trim().isEmpty()) {
             throw new IllegalArgumentException("La contraseña no puede estar vacía.");
         }
 
@@ -46,10 +59,13 @@ public class EmpleadoService {
         empleado.getUsuario().setRol("ROLE_RECEPCIONISTA");
         Empleado nuevoEmpleado = empleadoRepository.save(empleado);
 
-        auditoriaService.registrarAccion("CREACION_EMPLEADO",
-                "Nuevo recepcionista: " + nuevoEmpleado.getNombres() + " " + nuevoEmpleado.getApellidos() + " (DNI: " + nuevoEmpleado.getDni() + ")",
-                "Empleado",
-                nuevoEmpleado.getId());
+        Long empleadoId = nuevoEmpleado.getId();
+        if (empleadoId != null) {
+            auditoriaService.registrarAccion("CREACION_EMPLEADO",
+                    "Nuevo recepcionista: " + nuevoEmpleado.getNombres() + " " + nuevoEmpleado.getApellidos() + " (DNI: " + nuevoEmpleado.getDni() + ")",
+                    "Empleado",
+                    empleadoId);
+        }
         return nuevoEmpleado;
     }
 
@@ -58,11 +74,17 @@ public class EmpleadoService {
     }
 
     public Optional<Empleado> buscarEmpleadoPorId(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
         return empleadoRepository.findById(id);
     }
 
     @Transactional
     public Empleado actualizarEmpleado(Empleado empleadoActualizado) {
+        if (empleadoActualizado == null || empleadoActualizado.getId() == null) {
+            throw new IllegalArgumentException("El empleado y su ID no pueden ser nulos");
+        }
         return empleadoRepository.findById(empleadoActualizado.getId()).map(empleadoExistente -> {
             if (!empleadoExistente.getDni().equals(empleadoActualizado.getDni()) && empleadoRepository.findByDni(empleadoActualizado.getDni()).isPresent()) {
                 throw new IllegalArgumentException("El DNI '" + empleadoActualizado.getDni() + "' ya está en uso.");
@@ -93,25 +115,31 @@ public class EmpleadoService {
             }
 
             Empleado empleadoGuardado = empleadoRepository.save(empleadoExistente);
-
-            auditoriaService.registrarAccion("ACTUALIZACION_EMPLEADO",
-                    "Empleado '" + empleadoGuardado.getNombres() + " " + empleadoGuardado.getApellidos() + "' (ID: " + empleadoGuardado.getId() + ") actualizado.",
-                    "Empleado",
-                    empleadoGuardado.getId());
+            if (empleadoGuardado.getId() != null) {
+                auditoriaService.registrarAccion("ACTUALIZACION_EMPLEADO",
+                        "Empleado '" + empleadoGuardado.getNombres() + " " + empleadoGuardado.getApellidos() + "' (ID: " + empleadoGuardado.getId() + ") actualizado.",
+                        "Empleado",
+                        empleadoGuardado.getId());
+            }
             return empleadoGuardado;
         }).orElseThrow(() -> new IllegalArgumentException("Empleado con ID " + empleadoActualizado.getId() + " no encontrado."));
     }
 
     @Transactional
     public boolean eliminarEmpleado(Long id) {
+        if (id == null) {
+            return false;
+        }
         Optional<Empleado> empleadoOptional = empleadoRepository.findById(id);
         if (empleadoOptional.isPresent()) {
             Empleado empleado = empleadoOptional.get();
+            if (empleado.getId() != null) {
+                auditoriaService.registrarAccion("ELIMINACION_EMPLEADO",
+                        "Empleado '" + empleado.getNombres() + " " + empleado.getApellidos() + "' (ID: " + empleado.getId() + ") eliminado.",
+                        "Empleado",
+                        empleado.getId());
+            }
             empleadoRepository.delete(empleado);
-            auditoriaService.registrarAccion("ELIMINACION_EMPLEADO",
-                    "Empleado '" + empleado.getNombres() + " " + empleado.getApellidos() + "' (ID: " + empleado.getId() + ") eliminado.",
-                    "Empleado",
-                    empleado.getId());
             return true;
         }
         return false;

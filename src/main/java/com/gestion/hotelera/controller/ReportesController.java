@@ -31,7 +31,17 @@ public class ReportesController {
     public List<Map<String, Object>> getIngresosPorPeriodo(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
-        return reservaService.getIngresosPorPeriodo(fechaInicio, fechaFin);
+        try {
+            if (fechaInicio == null || fechaFin == null) {
+                return List.of();
+            }
+            if (fechaInicio.isAfter(fechaFin)) {
+                return List.of();
+            }
+            return reservaService.getIngresosPorPeriodo(fechaInicio, fechaFin);
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 
     @GetMapping("/api/movimiento")
@@ -39,6 +49,16 @@ public class ReportesController {
     public List<Map<String, Object>> getMovimientoPorPeriodo(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
-        return reservaService.getMovimientoPorPeriodo(fechaInicio, fechaFin);
+        try {
+            if (fechaInicio == null || fechaFin == null) {
+                return List.of();
+            }
+            if (fechaInicio.isAfter(fechaFin)) {
+                return List.of();
+            }
+            return reservaService.getMovimientoPorPeriodo(fechaInicio, fechaFin);
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 }

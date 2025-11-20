@@ -28,6 +28,12 @@ public class AuditoriaService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Auditoria registrarAccion(String tipoAccion, String detalleAccion, String entidadAfectada, Long entidadAfectadaId) {
+        if (tipoAccion == null || tipoAccion.trim().isEmpty()) {
+            throw new IllegalArgumentException("El tipo de acción no puede estar vacío");
+        }
+        if (detalleAccion == null || detalleAccion.trim().isEmpty()) {
+            throw new IllegalArgumentException("El detalle de acción no puede estar vacío");
+        }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = null;
@@ -55,14 +61,33 @@ public class AuditoriaService {
     }
 
     public Page<Auditoria> obtenerTodosLosLogs(Pageable pageable) {
+        if (pageable == null) {
+            pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        }
         return auditoriaRepository.findAll(pageable);
     }
 
     public Page<Auditoria> obtenerLogsPorDniEmpleado(String dni, Pageable pageable) {
-        return auditoriaRepository.findByEmpleadoDni(dni, pageable);
+        if (dni == null || dni.trim().isEmpty()) {
+            return Page.empty();
+        }
+        try {
+            return auditoriaRepository.findByEmpleadoDni(dni.trim(), pageable);
+        } catch (Exception e) {
+            return Page.empty();
+        }
     }
 
     public Page<Auditoria> searchLogs(String keyword, Pageable pageable) {
-        return auditoriaRepository.findByTipoAccionContainingIgnoreCaseOrDetalleAccionContainingIgnoreCase(keyword, keyword, pageable);
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return obtenerTodosLosLogs(pageable);
+        }
+        try {
+            String sanitizedKeyword = keyword.trim().substring(0, Math.min(keyword.trim().length(), 100));
+            return auditoriaRepository.findByTipoAccionContainingIgnoreCaseOrDetalleAccionContainingIgnoreCase(
+                    sanitizedKeyword, sanitizedKeyword, pageable);
+        } catch (Exception e) {
+            return Page.empty();
+        }
     }
 }
