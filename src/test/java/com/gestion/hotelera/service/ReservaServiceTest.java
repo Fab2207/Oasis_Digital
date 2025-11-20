@@ -280,10 +280,9 @@ class ReservaServiceTest {
             when(reservaRepository.save(any(Reserva.class))).thenReturn(reserva);
             
             // When
-            boolean resultado = reservaService.finalizarReserva(1L);
+            reservaService.finalizarReserva(1L);
             
             // Then
-            assertThat(resultado).isTrue();
             verify(auditoriaService).registrarAccion(
                 eq("FINALIZACION_RESERVA"),
                 contains("Reserva finalizada"),

@@ -3,13 +3,7 @@ package com.gestion.hotelera.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "clientes")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -56,4 +50,34 @@ public class Cliente {
     @OneToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
+
+    public Cliente() {}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getNombres() { return nombres; }
+    public void setNombres(String nombres) {
+        if (nombres != null && nombres.trim().isEmpty()) {
+            throw new IllegalArgumentException("Los nombres no pueden estar vacíos");
+        }
+        this.nombres = nombres != null ? nombres.trim() : null;
+    }
+    public String getApellidos() { return apellidos; }
+    public void setApellidos(String apellidos) {
+        if (apellidos != null && apellidos.trim().isEmpty()) {
+            throw new IllegalArgumentException("Los apellidos no pueden estar vacíos");
+        }
+        this.apellidos = apellidos != null ? apellidos.trim() : null;
+    }
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
+    public String getNacionalidad() { return nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+    public boolean isHasActiveReservations() { return hasActiveReservations; }
+    public void setHasActiveReservations(boolean hasActiveReservations) { this.hasActiveReservations = hasActiveReservations; }
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 }

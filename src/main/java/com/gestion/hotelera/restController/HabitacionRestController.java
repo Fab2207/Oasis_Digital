@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/habitaciones")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class HabitacionRestController {
 
     private final HabitacionService habitacionService;
@@ -39,12 +39,16 @@ public class HabitacionRestController {
 
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<Habitacion>> listarPorEstado(@PathVariable String estado) {
-        return switch (estado.toUpperCase()) {
-            case "DISPONIBLE" -> ResponseEntity.ok(habitacionService.obtenerHabitacionesDisponibles());
-            case "OCUPADA" -> ResponseEntity.ok(habitacionService.obtenerHabitacionesOcupadas());
-            case "MANTENIMIENTO" -> ResponseEntity.ok(habitacionService.obtenerHabitacionesEnMantenimiento());
-            default -> ResponseEntity.ok(List.of());
-        };
+        switch (estado.toUpperCase()) {
+            case "DISPONIBLE":
+                return ResponseEntity.ok(habitacionService.obtenerHabitacionesDisponibles());
+            case "OCUPADA":
+                return ResponseEntity.ok(habitacionService.obtenerHabitacionesOcupadas());
+            case "MANTENIMIENTO":
+                return ResponseEntity.ok(habitacionService.obtenerHabitacionesEnMantenimiento());
+            default:
+                return ResponseEntity.ok(List.of());
+        }
     }
 
     @PutMapping("/{id}")

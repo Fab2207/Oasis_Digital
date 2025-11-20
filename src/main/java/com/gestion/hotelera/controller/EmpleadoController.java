@@ -53,8 +53,7 @@ public class EmpleadoController {
             redirectAttributes.addFlashAttribute("empleado", empleado);
             return "redirect:/empleados/registrar";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error inesperado al registrar el recepcionista: " + e.getMessage());
-            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Error inesperado al registrar el recepcionista");
             redirectAttributes.addFlashAttribute("empleado", empleado);
             return "redirect:/empleados/registrar";
         }
@@ -68,12 +67,21 @@ public class EmpleadoController {
 
     @GetMapping("/editar/{id}")
     public String showEditarEmpleadoForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        if (id == null || id <= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ID de empleado inválido");
+            return "redirect:/empleados/lista";
+        }
         if (!model.containsAttribute("empleado")) {
-            Optional<Empleado> empleadoOptional = empleadoService.buscarEmpleadoPorId(id);
-            if (empleadoOptional.isPresent()) {
-                model.addAttribute("empleado", empleadoOptional.get());
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "Empleado no encontrado para edición.");
+            try {
+                Optional<Empleado> empleadoOptional = empleadoService.buscarEmpleadoPorId(id);
+                if (empleadoOptional.isPresent()) {
+                    model.addAttribute("empleado", empleadoOptional.get());
+                } else {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Empleado no encontrado");
+                    return "redirect:/empleados/lista";
+                }
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Error al cargar empleado");
                 return "redirect:/empleados/lista";
             }
         }
@@ -86,15 +94,18 @@ public class EmpleadoController {
                                      RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
-            boolean passwordErrorOnly = result.hasFieldErrors("usuario.password") && result.getErrorCount() == 1;
+            // Ignorar errores de contraseña vacía en actualización
+            result.getFieldErrors().removeIf(error ->
+                    "usuario.password".equals(error.getField()) &&
+                            (empleado.getUsuario().getPassword() == null || empleado.getUsuario().getPassword().isEmpty())
+            );
 
-            if (passwordErrorOnly && (empleado.getUsuario().getPassword() == null || empleado.getUsuario().getPassword().isEmpty())){
+            if (result.hasErrors()) {
+                redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.empleado", result);
+                redirectAttributes.addFlashAttribute("empleado", empleado);
+                redirectAttributes.addFlashAttribute("errorMessage", "Por favor, corrige los errores en el formulario.");
+                return "redirect:/empleados/editar/" + empleado.getId();
             }
-
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.empleado", result);
-            redirectAttributes.addFlashAttribute("empleado", empleado);
-            redirectAttributes.addFlashAttribute("errorMessage", "Por favor, corrige los errores en el formulario.");
-            return "redirect:/empleados/editar/" + empleado.getId();
         }
 
         try {
@@ -106,8 +117,7 @@ public class EmpleadoController {
             redirectAttributes.addFlashAttribute("empleado", empleado);
             return "redirect:/empleados/editar/" + empleado.getId();
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error inesperado al actualizar el empleado: " + e.getMessage());
-            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Error inesperado al actualizar el empleado");
             redirectAttributes.addFlashAttribute("empleado", empleado);
             return "redirect:/empleados/editar/" + empleado.getId();
         }
@@ -122,8 +132,7 @@ public class EmpleadoController {
                 redirectAttributes.addFlashAttribute("errorMessage", "No se pudo eliminar el empleado. Es posible que no exista.");
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el empleado: " + e.getMessage());
-            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el empleado");
         }
         return "redirect:/empleados/lista";
     }
