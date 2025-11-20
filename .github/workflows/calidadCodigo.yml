@@ -1,0 +1,56 @@
+name: Validación de Calidad de Código
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  # 1. Validación de código web (HTML y CSS)
+  validate_web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+
+      - name: Validar HTML
+        uses: Cyb3r-Jak3/htmlhint-action@v1.3.0
+        with:
+          files: "**/*.html"
+          fail: true
+
+      - name: Validar CSS con Stylelint
+        uses: shanewholloway/stylelint-action@v1
+        with:
+          files: "css/**/*.css"
+
+  # 2. Análisis de código Java y Spring con SonarQube
+  analyze_java:
+    runs-on: ubuntu-latest
+    # Se añade una condición: este job solo se ejecuta si el job de web fue exitoso.
+    needs: validate_web 
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+        with:
+          # Necesario para el escáner de SonarQube
+          fetch-depth: 0 
+
+      - name: Configurar JDK 17 (o la versión que uses en tu proyecto)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven' # O 'gradle', dependiendo de tu sistema de construcción
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        env:
+          # **VARIABLES SECRETAS REQUERIDAS**
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+        with:
+          # Comando de Maven/Gradle para ejecutar el análisis (ejemplo con Maven)
+          args: > 
+            -Dsonar.projectKey=nombre-del-proyecto-en-sonarcloud 
+            -Dsonar.organization=tu-organizacion-de-sonarcloud
+            -Dsonar.host.url=https://sonarcloud.io 
+            # O utiliza tu URL si usas un SonarQube self-hosted
