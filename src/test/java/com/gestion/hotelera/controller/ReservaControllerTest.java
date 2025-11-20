@@ -6,20 +6,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gestion.hotelera.config.TestSecurityConfig;
+
 import com.gestion.hotelera.model.Cliente;
 import com.gestion.hotelera.model.Habitacion;
 import com.gestion.hotelera.model.Reserva;
+import com.gestion.hotelera.restController.ReservaRestController;
 import com.gestion.hotelera.service.ReservaService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -31,15 +35,17 @@ import java.util.Optional;
  * Tests para ReservaController siguiendo TDD
  * Prueba los endpoints de la API REST
  */
-@WebMvcTest(ReservaController.class)
+@WebMvcTest(controllers = ReservaRestController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 @DisplayName("ReservaController - API Tests")
-@ExtendWith(MockitoExtension.class)
 class ReservaControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockitoBean
     private ReservaService reservaService;
 
     @Autowired
@@ -80,9 +86,9 @@ class ReservaControllerTest {
         when(reservaService.obtenerTodasLasReservas()).thenReturn(reservas);
 
         // When & Then
-        mockMvc.perform(get("/reservas"))
+        mockMvc.perform(get("/api/reservas"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].estadoReserva").value("PENDIENTE"))
@@ -96,9 +102,9 @@ class ReservaControllerTest {
         when(reservaService.buscarReservaPorId(1L)).thenReturn(Optional.of(reserva));
 
         // When & Then
-        mockMvc.perform(get("/reservas/1"))
+        mockMvc.perform(get("/api/reservas/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.estadoReserva").value("PENDIENTE"))
                 .andExpect(jsonPath("$.cliente.nombres").value("Juan"));
@@ -111,7 +117,7 @@ class ReservaControllerTest {
         when(reservaService.buscarReservaPorId(999L)).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(get("/reservas/999"))
+        mockMvc.perform(get("/api/reservas/999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -122,11 +128,11 @@ class ReservaControllerTest {
         when(reservaService.crearOActualizarReserva(any(Reserva.class))).thenReturn(reserva);
 
         // When & Then
-        mockMvc.perform(post("/reservas")
-                .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/reservas")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(reserva)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.estadoReserva").value("PENDIENTE"));
     }
@@ -138,9 +144,10 @@ class ReservaControllerTest {
         when(reservaService.cancelarReserva(1L)).thenReturn(true);
 
         // When & Then
-        mockMvc.perform(put("/reservas/1/cancelar"))
+        mockMvc.perform(put("/api/reservas/1/cancelar"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Reserva cancelada exitosamente"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.message").value("Reserva cancelada exitosamente"));
 
         verify(reservaService).cancelarReserva(1L);
     }
@@ -152,21 +159,23 @@ class ReservaControllerTest {
         when(reservaService.cancelarReserva(999L)).thenReturn(false);
 
         // When & Then
-        mockMvc.perform(put("/reservas/999/cancelar"))
+        mockMvc.perform(put("/api/reservas/999/cancelar"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Reserva no encontrada"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.error").value("Reserva no encontrada"));
     }
 
     @Test
     @DisplayName("PUT /reservas/{id}/finalizar - Debería finalizar reserva")
     void deberiaFinalizarReserva() throws Exception {
         // Given
-        when(reservaService.finalizarReserva(1L)).thenReturn(true);
+        doNothing().when(reservaService).finalizarReserva(1L);
 
         // When & Then
-        mockMvc.perform(put("/reservas/1/finalizar"))
+        mockMvc.perform(put("/api/reservas/1/finalizar"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Reserva finalizada exitosamente"));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.message").value("Reserva finalizada correctamente"));
 
         verify(reservaService).finalizarReserva(1L);
     }
@@ -178,9 +187,9 @@ class ReservaControllerTest {
         when(reservaService.calcularIngresosTotales()).thenReturn(1500.0);
 
         // When & Then
-        mockMvc.perform(get("/reservas/estadisticas/ingresos"))
+        mockMvc.perform(get("/api/reservas/estadisticas/ingresos"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.ingresosTotales").value(1500.0));
     }
 
@@ -191,9 +200,9 @@ class ReservaControllerTest {
         when(reservaService.contarReservas()).thenReturn(5L);
 
         // When & Then
-        mockMvc.perform(get("/reservas/estadisticas/contar"))
+        mockMvc.perform(get("/api/reservas/estadisticas/contar"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.totalReservas").value(5));
     }
 
@@ -201,12 +210,13 @@ class ReservaControllerTest {
     @DisplayName("GET /reservas/estadisticas/contar/{estado} - Debería retornar conteo por estado")
     void deberiaRetornarConteoPorEstado() throws Exception {
         // Given
-        when(reservaService.contarReservasPorEstado("PENDIENTE")).thenReturn(3L);
+        String estado = "PENDIENTE";
+        when(reservaService.contarReservasPorEstado(estado)).thenReturn(3L);
 
         // When & Then
-        mockMvc.perform(get("/reservas/estadisticas/contar/PENDIENTE"))
+        mockMvc.perform(get("/api/reservas/estadisticas/contar/PENDIENTE"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.estado").value("PENDIENTE"))
                 .andExpect(jsonPath("$.cantidad").value(3));
     }
