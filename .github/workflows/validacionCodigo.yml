@@ -1,0 +1,33 @@
+name: Validación de Calidad de Código
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  validate_web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js y dependencias
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Usar una versión de Node.js actual
+
+      # --- VALIDACIÓN HTML (Alternativa usando la CLI) ---
+      - name: Instalar htmlhint
+        run: npm install -g htmlhint
+
+      - name: Validar HTML
+        run: htmlhint "**/*.html"
+
+      # --- VALIDACIÓN CSS (Alternativa usando la CLI de Stylelint) ---
+      # Si ya tienes stylelint configurado en tu package.json:
+      - name: Instalar dependencias del proyecto
+        run: npm install 
+
+      - name: Validar CSS con Stylelint
+        # Reemplaza 'stylelint' con el comando real definido en tu package.json si es diferente
+        run: npx stylelint "css/**/*.css"
