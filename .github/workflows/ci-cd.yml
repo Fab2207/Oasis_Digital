@@ -3,19 +3,20 @@ name: CI/CD Simple - Spring Boot
 on:
   push:
     branches:
-      - main 
+      - main  # Solo en cambios en la rama main
   pull_request:
     branches:
-      - main 
+      - main  # También para PRs hacia main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
+      # Paso 1: Checkout del código
       - name: Checkout del código
         uses: actions/checkout@v4
 
+      # Paso 2: Configuración de JDK 17
       - name: Configurar JDK 17
         uses: actions/setup-java@v4
         with:
@@ -23,9 +24,17 @@ jobs:
           java-version: '17'
           cache: maven
 
+      # Paso 3: Dar permisos de ejecución a todos los archivos del repositorio
+      - name: Dar permisos a mvnw y otros archivos
+        run: |
+          chmod -R +x .  # Da permisos de ejecución a todos los archivos en el repositorio
+          ls -la  # Listar archivos para verificar que mvnw está allí y con permisos
+
+      # Paso 4: Compilar el proyecto (sin tests)
       - name: Compilar sin ejecutar tests
         run: ./mvnw clean package -DskipTests
 
+      # Paso 5: Subir artefacto JAR
       - name: Subir artefacto JAR
         uses: actions/upload-artifact@v4
         with:
@@ -35,27 +44,31 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
+    if: github.ref == 'refs/heads/main'  # Solo en push/merge a main
 
     steps:
-
+      # Paso 1: Checkout del código
       - name: Checkout del código
         uses: actions/checkout@v4
 
+      # Paso 2: Descargar artefacto JAR
       - name: Descargar artefacto JAR
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
 
+      # Paso 3: Crear directorio para despliegue y mover el archivo JAR
       - name: Crear carpeta y mover JAR
         run: |
           mkdir -p deploy
           mv target/*.jar deploy/app.jar
 
+      # Paso 4: Subir artefacto a GitHub Pages
       - name: Subir artefacto a GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: deploy/
 
+      # Paso 5: Desplegar en GitHub Pages
       - name: Desplegar a GitHub Pages
         uses: actions/deploy-pages@v4
