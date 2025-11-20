@@ -47,7 +47,7 @@ public class AuditoriaController {
                     logsPage = auditoriaService.obtenerLogsPorDniEmpleado(dniSanitizado, pageable);
                     model.addAttribute("filtroDni", dniSanitizado);
                     if (logsPage.isEmpty()) {
-                        model.addAttribute("message", "No se encontraron logs para el DNI especificado");
+                        model.addAttribute("message", "No hay logs registrados");
                     }
                 } else {
                     logsPage = auditoriaService.obtenerTodosLosLogs(pageable);
