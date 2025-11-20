@@ -1,9 +1,9 @@
 // Configuración global de la aplicación
 const AppConfig = {
   apiKeys: {
-    openweather: "9d3b7f8c4e2a1b5f6d8c3e7a9b4c2d1e",
-    unsplash: "demo",
-    dniPeru: "demo",
+    openweather: process.env.OPENWEATHER_API_KEY || "demo",
+    unsplash: process.env.UNSPLASH_API_KEY || "demo",
+    dniPeru: process.env.DNI_PERU_API_KEY || "demo",
   },
   roles: {
     CLIENTE: "cliente",
@@ -41,14 +41,25 @@ function setUserRole(role, name = "Usuario") {
 
 // Obtener datos del clima
 async function fetchWeather(city = "Lima") {
+  if (!city || typeof city !== 'string') {
+    city = "Lima";
+  }
+
+  // Sanitizar entrada
+  city = encodeURIComponent(city.trim());
+
   try {
     const apiKey = AppConfig.apiKeys.openweather;
+    if (!apiKey || apiKey === "demo") {
+      throw new Error("API key no configurada");
+    }
+
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=es`
     );
 
     if (!response.ok) {
-      throw new Error("Error al obtener clima");
+      throw new Error(`Error HTTP: ${response.status}`);
     }
 
     const data = await response.json();
@@ -152,6 +163,10 @@ function formatCurrency(amount) {
 
 // Mostrar notificaciones
 function showNotification(message, type = "info") {
+  if (!message || typeof message !== 'string') {
+    return;
+  }
+
   // Mapeo de tipos
   const typeMap = {
     success: "success",
@@ -166,10 +181,18 @@ function showNotification(message, type = "info") {
   alertDiv.className = `alert alert-${alertType} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
   alertDiv.style.zIndex = "9999";
   alertDiv.style.minWidth = "300px";
-  alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+
+  // Usar textContent para prevenir XSS
+  const messageSpan = document.createElement("span");
+  messageSpan.textContent = message;
+
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.className = "btn-close";
+  closeButton.setAttribute("data-bs-dismiss", "alert");
+
+  alertDiv.appendChild(messageSpan);
+  alertDiv.appendChild(closeButton);
   document.body.appendChild(alertDiv);
 
   // Auto-remover después de 5 segundos
@@ -354,10 +377,16 @@ function initSmoothScroll() {
 
 // API Helper Functions
 const API = {
-  baseURL: "http://localhost:8084/api",
+  baseURL: window.location.origin + "/api",
 
   async request(endpoint, options = {}) {
+    if (!endpoint || typeof endpoint !== 'string') {
+      throw new Error('Endpoint inválido');
+    }
+
     const token = localStorage.getItem("jwt_token");
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+
     const headers = {
       "Content-Type": "application/json",
       ...options.headers,
@@ -365,6 +394,10 @@ const API = {
 
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    if (csrfToken) {
+      headers["X-CSRF-TOKEN"] = csrfToken;
     }
 
     try {

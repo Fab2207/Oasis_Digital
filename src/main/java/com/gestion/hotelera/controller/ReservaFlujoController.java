@@ -159,7 +159,6 @@ public class ReservaFlujoController {
                 request.setTarjeta(null);
             }
 
-            // Validar que el método no sea null o vacío antes de crear el request
             if (metodo == null || metodo.trim().isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Debe seleccionar un método de pago");
                 return "redirect:/reservas/" + id + "/pago" + (returnTo != null ? "?returnTo=" + returnTo : "");
@@ -167,7 +166,6 @@ public class ReservaFlujoController {
 
             PagoResponse response = pagoService.procesarPago(request);
 
-            // Verificar si el pago fue exitoso
             if (response == null || !response.isExito()) {
                 String mensajeError = response != null && response.getMensaje() != null ?
                         response.getMensaje() : "No fue posible procesar el pago. Inténtalo nuevamente.";
