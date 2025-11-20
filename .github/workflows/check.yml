@@ -1,0 +1,27 @@
+name: Validación HTML y CSS
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@v4
+
+      - name: Validar HTML
+        uses: Cyb3r-Jak3/htmlhint-action@v1.3.0
+        with:
+          # Busca archivos .html en todo el repositorio.
+          files: "**/*.html"
+          # Establece la salida como 'error' si se encuentran fallos.
+          fail: true 
+
+      - name: Validar CSS con Stylelint
+        # Se reemplazó cssstats-action por una acción de Stylelint
+        uses: shanewholloway/stylelint-action@v1
+        with:
+          # Stylelint buscará archivos CSS en el directorio 'css'
+          files: "css/**/*.css"
